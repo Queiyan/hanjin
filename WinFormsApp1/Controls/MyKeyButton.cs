@@ -85,23 +85,36 @@ namespace WinFormsApp1.Controls
         public MyKeyButton()
         {
             this.SizeMode = PictureBoxSizeMode.StretchImage;
+            // Click 이벤트 추가
+            this.Click += MyKeyButton_Click;
         }
 
         // -------------------
-        // 마우스 이벤트
+        // 터치/클릭 이벤트
         // -------------------
-        protected override void OnMouseDown(MouseEventArgs e)
+        private void MyKeyButton_Click(object sender, EventArgs e)
         {
-            base.OnMouseDown(e);
+            // 터치/클릭 시 시각적 피드백
             isPressed = true;
             RefreshImage();
-        }
 
-        protected override void OnMouseUp(MouseEventArgs e)
-        {
-            base.OnMouseUp(e);
-            isPressed = false;
-            RefreshImage();
+            // 짧은 지연 후 원래 상태로 복원
+            System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>
+            {
+                if (this.InvokeRequired)
+                {
+                    this.Invoke(new Action(() =>
+                    {
+                        isPressed = false;
+                        RefreshImage();
+                    }));
+                }
+                else
+                {
+                    isPressed = false;
+                    RefreshImage();
+                }
+            });
         }
 
         // -------------------
@@ -109,26 +122,17 @@ namespace WinFormsApp1.Controls
         // -------------------
         public void RefreshImage()
         {
-            //Console.WriteLine($"RefreshImage 진입, 값 : {isKor}, {isShift}");
             Image selected = null;
-
-            //if (this.InvokeRequired)
-            //{
-            //    this.Invoke(new Action(RefreshImage));
-            //    return;
-            //}
 
             if (isKor)
             {
                 if (!isShift)
                 {
                     selected = isPressed ? KorLowerPressedImage : KorLowerNormalImage;
-                    //Console.WriteLine(selected != null ? "KorLower 이미지 설정됨" : "KorLower 이미지 null");
                 }
                 else
                 {
                     selected = isPressed ? KorUpperPressedImage : KorUpperNormalImage;
-                    //Console.WriteLine(selected != null ? "KorUpper 이미지 설정됨" : "KorUpper 이미지 null");
                 }
             }
             else
@@ -136,49 +140,28 @@ namespace WinFormsApp1.Controls
                 if (!isShift)
                 {
                     selected = isPressed ? EngLowerPressedImage : EngLowerNormalImage;
-                    //Console.WriteLine(selected != null ? "EngLower 이미지 설정됨" : "EngLower 이미지 null");
                 }
                 else
                 {
                     selected = isPressed ? EngUpperPressedImage : EngUpperNormalImage;
-                    //Console.WriteLine(selected != null ? "EngUpper 이미지 설정됨" : "EngUpper 이미지 null");
                 }
             }
 
             if (selected != null)
             {
-                this.Image = selected; // 새로운 Bitmap 대신 기존 이미지를 사용
-                //Console.WriteLine("이미지 적용됨");
+                this.Image = selected;
             }
             else
             {
                 this.Image = null;
                 Console.WriteLine("이미지 null 설정됨");
             }
-
-            //this.Invalidate(); // 컨트롤 다시 그리기
         }
-
-        // 모든 MyKeyButton 인스턴스의 이미지를 갱신
-        //private void RefreshAllButtons()
-        //{
-        //    var parentForm = this.FindForm();
-        //    if (parentForm != null)
-        //    {
-        //        Console.WriteLine("RefreshAllButtons 호출됨");
-        //        foreach (var btn in parentForm.Controls.OfType<MyKeyButton>())
-        //        {
-        //            Console.WriteLine($"RefreshImage 호출됨 for {btn.Name}");
-        //            btn.RefreshImage();
-        //        }
-        //    }
-        //}
 
         // 디자이너 상에서 NormalImage 설정 직후
         protected override void OnCreateControl()
         {
             base.OnCreateControl();
-            // 처음 표시 시점에, 한글 Lower Normal을 표시할 수도 있음
             RefreshImage();
         }
     }
