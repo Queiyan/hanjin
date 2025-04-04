@@ -4,8 +4,6 @@ namespace WinFormsApp1.Controls
 {
     public class PressKeyPictureBox : PictureBox
     {
-        private bool isPressed = false;
-
         [Category("Appearance")]
         [Description("기본 상태 이미지")]
         public Image NormalImage { get; set; }
@@ -16,23 +14,36 @@ namespace WinFormsApp1.Controls
 
         public PressKeyPictureBox()
         {
-            this.MouseEnter += MyKeyButton_MouseEnter;
-            this.MouseLeave += MyKeyButton_MouseLeave;
+            // Click 이벤트만 사용
+            this.Click += PressKeyPictureBox_Click;
         }
 
-        private void MyKeyButton_MouseEnter(object sender, EventArgs e)
+        private void PressKeyPictureBox_Click(object sender, EventArgs e)
         {
             if (PressedImage != null)
             {
                 this.Image = PressedImage;
-            }
-        }
-
-        private void MyKeyButton_MouseLeave(object sender, EventArgs e)
-        {
-            if (NormalImage != null)
-            {
-                this.Image = NormalImage;
+                // 짧은 지연 후 원래 이미지로 복원
+                System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>
+                {
+                    if (this.InvokeRequired)
+                    {
+                        this.Invoke(new Action(() =>
+                        {
+                            if (NormalImage != null)
+                            {
+                                this.Image = NormalImage;
+                            }
+                        }));
+                    }
+                    else
+                    {
+                        if (NormalImage != null)
+                        {
+                            this.Image = NormalImage;
+                        }
+                    }
+                });
             }
         }
 

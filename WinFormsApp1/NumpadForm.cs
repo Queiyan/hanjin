@@ -8,11 +8,58 @@ using System.Text;
 // 필요 없는 using 문은 제거하셔도 됩니다.
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace WinFormsApp1
 {
     public partial class NumpadForm : Form
     {
+        [DllImport("user32.dll")]
+        private static extern bool SetCursorPos(int x, int y);
+
+        [DllImport("user32.dll")]
+        private static extern bool GetCursorPos(out POINT lpPoint);
+
+        [DllImport("user32.dll")]
+        private static extern void mouse_event(int dwFlags, int dx, int dy, int dwData, int dwExtraInfo);
+
+        [DllImport("user32.dll")]
+        private static extern bool GetTouchInputInfo(IntPtr hTouchInput, int cInputs, [In, Out] TOUCHINPUT[] pInputs, int cbSize);
+
+        [DllImport("user32.dll")]
+        private static extern bool RegisterTouchWindow(IntPtr hwnd, ulong ulFlags);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct POINT
+        {
+            public int X;
+            public int Y;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct TOUCHINPUT
+        {
+            public int x;
+            public int y;
+            public IntPtr hSource;
+            public int dwID;
+            public int dwFlags;
+            public int dwMask;
+            public int dwTime;
+            public IntPtr dwExtraInfo;
+            public int cxContact;
+            public int cyContact;
+        }
+
+        private const int MOUSEEVENTF_LEFTDOWN = 0x02;
+        private const int MOUSEEVENTF_LEFTUP = 0x04;
+        private const int MOUSEEVENTF_ABSOLUTE = 0x8000; // 절대 좌표 사용
+        private const int MOUSEEVENTF_MOVE = 0x0001;
+
+        private bool isButtonPressed = false;
+        private DateTime lastPressTime;
+        private const int TouchThreshold = 500; // 터치 감지 임계값 (밀리초)
+
         public RichTextBox targetInputField;
         public event EventHandler NextKeyPressed;
         public string inputStr = "";
@@ -31,9 +78,65 @@ namespace WinFormsApp1
             };
             this.TopMost = true;
             //this.Activate();
+
+            // 터치 입력 등록
+            RegisterTouchWindow(this.Handle, 0);
         }
 
-        public async void EnterNumber(object sender, EventArgs e)
+        protected override void WndProc(ref Message m)
+        {
+            const int WM_TOUCH = 0x0240;
+            if (m.Msg == WM_TOUCH)
+            {
+                HandleTouchMessage(m);
+            }
+            base.WndProc(ref m);
+        }
+
+        private void HandleTouchMessage(Message m)
+        {
+            const int TOUCHEVENTF_DOWN = 0x0001;
+            const int TOUCHEVENTF_UP = 0x0002;
+            const int TOUCHEVENTF_MOVE = 0x0004;
+
+            int inputCount = m.WParam.ToInt32();
+            TOUCHINPUT[] inputs = new TOUCHINPUT[inputCount];
+
+            if (GetTouchInputInfo(m.LParam, inputCount, inputs, Marshal.SizeOf(typeof(TOUCHINPUT))))
+            {
+                foreach (var input in inputs)
+                {
+                    if ((input.dwFlags & TOUCHEVENTF_DOWN) != 0)
+                    {
+                        HandleTouchDown(input);
+                    }
+                    else if ((input.dwFlags & TOUCHEVENTF_UP) != 0)
+                    {
+                        HandleTouchUp(input);
+                    }
+                }
+            }
+        }
+
+        private void HandleTouchDown(TOUCHINPUT input)
+        {
+            if (!isButtonPressed)
+            {
+                isButtonPressed = true;
+                lastPressTime = DateTime.Now;
+            }
+        }
+
+        private void HandleTouchUp(TOUCHINPUT input)
+        {
+            if (isButtonPressed)
+            {
+                isButtonPressed = false;
+                // 여기서 필요한 추가 처리
+            }
+        }
+
+        public void EnterNumber(object sender, EventArgs e)
         {
             PictureBox numBox = (PictureBox)sender;
             string name = numBox.Name;
@@ -86,7 +189,6 @@ namespace WinFormsApp1
             }
             else if (name == "Enter")
             {
-                //SendKeys.Send("{TAB}");
                 OnNextKeyPressed(EventArgs.Empty);
                 return;
             }
@@ -110,18 +212,10 @@ namespace WinFormsApp1
                 }
             }
 
-            // 하이픈 제거된 숫자만 추출하여 포맷팅
-            string digits = targetInputField.Text.Replace("-", "");
-            //targetInputField.Text = FormatPhoneNumber(digits);
-
             // 포맷팅 후 커서 위치 조정
             targetInputField.SelectionStart = GetCursorPositionFromDigitIndex(targetInputField.Text, digitsBeforeCursor);
             targetInputField.SelectionLength = 0;
             targetInputField.Focus();
-
-            // 0.2초 후 마우스 커서 위치 초기화
-            await Task.Delay(200);
-            Cursor.Position = new System.Drawing.Point(0, 764);
         }
 
         private int GetCursorPositionFromDigitIndex(string formattedText, int digitIndex)
@@ -185,7 +279,6 @@ namespace WinFormsApp1
                 }
             }
         }
-
 
         public void SetTargetInputField(RichTextBox fieldBox)
         {
