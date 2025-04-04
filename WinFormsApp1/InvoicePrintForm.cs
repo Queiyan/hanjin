@@ -358,10 +358,6 @@ namespace WinFormsApp1
     ^FO425,50^A0R,20,20^FD{DataCtrl.SenderName}^FS
     ^FO400,50^A0R,20,20^FD{DataCtrl.SenderAddress2} {DataCtrl.SenderAddress3}^FS
 
-    ; 물품 정보 (FS형)
-    ; ^FO310,10^A0R,50,50^FD분류 : {DataCtrl.ProductCategory}^FS
-    ; ^FO225,10^A0R,40,40^FD물품가액 : {DataCtrl.ProductPriceInput} 원^FS
-
     ; 바코드 (세로 방향, 크기 조정) wbl_num
     ^FO60,600^BY2
     ^BCR,120,N,N,N

@@ -56,8 +56,10 @@ namespace WinFormsApp1
         private const int MOUSEEVENTF_ABSOLUTE = 0x8000; // 절대 좌표 사용
         private const int MOUSEEVENTF_MOVE = 0x0001;
 
-        private bool isButtonPressed = false;
-        private DateTime lastPressTime;
+        private System.Windows.Forms.Timer backspaceTimer;
+        private const int DeleteInterval = 200; // 연속 삭제 간격 (밀리초)
+        private bool isBackspacePressed = false;
+        private DateTime lastBackspacePressTime;
         private const int TouchThreshold = 500; // 터치 감지 임계값 (밀리초)
 
         public RichTextBox targetInputField;
@@ -73,11 +75,17 @@ namespace WinFormsApp1
             this.Shown += async (s, e) =>
             {
                 await Task.Delay(500);
-                //this.BringToFront(); // 폼을 맨 앞으로 가져옴
                 this.Opacity = 1; // 투명도 복원
             };
             this.TopMost = true;
-            //this.Activate();
+
+            // 백스페이스 버튼 이벤트 연결
+            Control[] backspaceControls = this.Controls.Find("BackSpace", true);
+            if (backspaceControls.Length > 0 && backspaceControls[0] is PictureBox backspaceButton)
+            {
+                backspaceButton.MouseDown += BackSpace_MouseDown;
+                backspaceButton.MouseUp += BackSpace_MouseUp;
+            }
 
             // 터치 입력 등록
             RegisterTouchWindow(this.Handle, 0);
@@ -120,19 +128,80 @@ namespace WinFormsApp1
 
         private void HandleTouchDown(TOUCHINPUT input)
         {
-            if (!isButtonPressed)
+            // 백스페이스 버튼 영역 확인
+            Control[] backspaceControls = this.Controls.Find("BackSpace", true);
+            if (backspaceControls.Length > 0 && backspaceControls[0] is PictureBox backspaceButton)
             {
-                isButtonPressed = true;
-                lastPressTime = DateTime.Now;
+                // 터치 좌표가 백스페이스 버튼 영역 내에 있는지 확인
+                Point touchPoint = new Point(input.x, input.y);
+                if (backspaceButton.Bounds.Contains(touchPoint))
+                {
+                    if (!isBackspacePressed)
+                    {
+                        isBackspacePressed = true;
+                        lastBackspacePressTime = DateTime.Now;
+                        StartBackspaceTimer();
+                    }
+                }
             }
         }
 
         private void HandleTouchUp(TOUCHINPUT input)
         {
-            if (isButtonPressed)
+            if (isBackspacePressed)
             {
-                isButtonPressed = false;
-                // 여기서 필요한 추가 처리
+                isBackspacePressed = false;
+                StopBackspaceTimer();
+            }
+        }
+
+        private void StartBackspaceTimer()
+        {
+            if (backspaceTimer == null)
+            {
+                backspaceTimer = new System.Windows.Forms.Timer();
+                backspaceTimer.Interval = DeleteInterval;
+                backspaceTimer.Tick += BackspaceTimer_Tick;
+            }
+            backspaceTimer.Start();
+        }
+
+        private void StopBackspaceTimer()
+        {
+            if (backspaceTimer != null)
+            {
+                backspaceTimer.Stop();
+                backspaceTimer.Tick -= BackspaceTimer_Tick;
+                backspaceTimer.Dispose();
+                backspaceTimer = null;
+            }
+        }
+
+        private void BackspaceTimer_Tick(object sender, EventArgs e)
+        {
+            if (backspaceTimer != null && backspaceTimer.Enabled && isBackspacePressed)
+            {
+                HandleBackspace();
+            }
+        }
+
+        private void HandleBackspace()
+        {
+            if (targetInputField == null) return;
+
+            int selectionStart = targetInputField.SelectionStart;
+            int selectionLength = targetInputField.SelectionLength;
+
+            if (selectionLength > 0)
+            {
+                // 선택된 텍스트 삭제
+                targetInputField.Text = targetInputField.Text.Remove(selectionStart, selectionLength);
+            }
+            else if (selectionStart > 0)
+            {
+                // 커서 앞의 한 문자 삭제
+                targetInputField.Text = targetInputField.Text.Remove(selectionStart - 1, 1);
+                targetInputField.SelectionStart = selectionStart - 1;
             }
         }
 
@@ -161,18 +230,13 @@ namespace WinFormsApp1
 
             if (name == "BackSpace")
             {
-                if (selectionLength > 0)
+                if (!isBackspacePressed)
                 {
-                    // 선택된 텍스트 삭제
-                    targetInputField.Text = targetInputField.Text.Remove(selectionStart, selectionLength);
+                    isBackspacePressed = true;
+                    lastBackspacePressTime = DateTime.Now;
+                    StartBackspaceTimer();
                 }
-                else if (selectionStart > 0)
-                {
-                    // 커서 앞의 한 문자 삭제
-                    targetInputField.Text = targetInputField.Text.Remove(selectionStart - 1, 1);
-                    selectionStart--;
-                    digitsBeforeCursor--;
-                }
+                HandleBackspace();
             }
             else if (name == "Delete")
             {
@@ -297,5 +361,26 @@ namespace WinFormsApp1
         private void panel1_Paint(object sender, PaintEventArgs e) { }
         private void keyLayout1_Paint(object sender, PaintEventArgs e) { }
         private void NumpadForm_Load(object sender, EventArgs e) { }
+
+        // 마우스 이벤트 핸들러 추가
+        private void BackSpace_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (!isBackspacePressed)
+            {
+                isBackspacePressed = true;
+                lastBackspacePressTime = DateTime.Now;
+                StartBackspaceTimer();
+            }
+            HandleBackspace();
+        }
+
+        private void BackSpace_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (isBackspacePressed)
+            {
+                isBackspacePressed = false;
+                StopBackspaceTimer();
+            }
+        }
     }
 }

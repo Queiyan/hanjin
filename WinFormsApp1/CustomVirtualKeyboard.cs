@@ -206,11 +206,43 @@ namespace WinFormsApp1
         protected override void WndProc(ref Message m)
         {
             const int WM_TOUCH = 0x0240;
+            const int WM_KEYDOWN = 0x0100;
+
             if (m.Msg == WM_TOUCH)
             {
                 HandleTouchMessage(m);
             }
+            else if (m.Msg == WM_KEYDOWN)
+            {
+                // 백스페이스 키 (VK_BACK = 0x08)
+                if (m.WParam.ToInt32() == 0x08)
+                {
+                    if (!isBackspacePressed)
+                    {
+                        isBackspacePressed = true;
+                        lastBackspacePressTime = DateTime.Now;
+                        StartBackspaceTimer();
+                    }
+                    HandleBackspace();
+                }
+            }
             base.WndProc(ref m);
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Back)
+            {
+                if (!isBackspacePressed)
+                {
+                    isBackspacePressed = true;
+                    lastBackspacePressTime = DateTime.Now;
+                    StartBackspaceTimer();
+                }
+                HandleBackspace();
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
         }
 
         private void HandleTouchMessage(Message m)
@@ -240,11 +272,21 @@ namespace WinFormsApp1
 
         private void HandleTouchDown(TOUCHINPUT input)
         {
-            if (!isBackspacePressed)
+            // 백스페이스 버튼 영역 확인
+            Control[] backspaceControls = this.Controls.Find("Backspace", true);
+            if (backspaceControls.Length > 0 && backspaceControls[0] is PictureBox backspaceButton)
             {
-                isBackspacePressed = true;
-                lastBackspacePressTime = DateTime.Now;
-                StartBackspaceTimer();
+                // 터치 좌표가 백스페이스 버튼 영역 내에 있는지 확인
+                Point touchPoint = new Point(input.x, input.y);
+                if (backspaceButton.Bounds.Contains(touchPoint))
+                {
+                    if (!isBackspacePressed)
+                    {
+                        isBackspacePressed = true;
+                        lastBackspacePressTime = DateTime.Now;
+                        StartBackspaceTimer();
+                    }
+                }
             }
         }
 
@@ -279,6 +321,14 @@ namespace WinFormsApp1
             }
         }
 
+        private void BackspaceTimer_Tick(object sender, EventArgs e)
+        {
+            if (backspaceTimer != null && backspaceTimer.Enabled && isBackspacePressed)
+            {
+                HandleBackspace();
+            }
+        }
+
         public CustomVirtualKeyboard(IntPtr parentHandle)
         {
             parentFormHandle = parentHandle;
@@ -289,14 +339,6 @@ namespace WinFormsApp1
             {
                 // 터치 입력 등록
                 RegisterTouchWindow(this.Handle, 0);
-
-                // Backspace 버튼 이벤트 연결
-                Control[] backspaceControls = this.Controls.Find("Backspace", true);
-                if (backspaceControls.Length > 0 && backspaceControls[0] is PictureBox backspaceButton)
-                {
-                    backspaceButton.MouseDown += Backspace_MouseDown;
-                    backspaceButton.MouseUp += Backspace_MouseUp;
-                }
 
                 // 폼의 초기 위치와 크기 설정
                 this.StartPosition = FormStartPosition.Manual;
@@ -321,12 +363,19 @@ namespace WinFormsApp1
                 this.Shown += async (s, e) =>
                 {
                     await Task.Delay(500);
-                    //this.BringToFront(); // 폼을 맨 앞으로 가져옴
                     this.Opacity = 1; // 투명도 복원
                 };
 
                 // 폼을 항상 최상위에 있도록 설정
                 this.TopMost = true;
+
+                // 백스페이스 버튼 이벤트 연결
+                Control[] backspaceControls = this.Controls.Find("Backspace", true);
+                if (backspaceControls.Length > 0 && backspaceControls[0] is PictureBox backspaceButton)
+                {
+                    backspaceButton.MouseDown += Backspace_MouseDown;
+                    backspaceButton.MouseUp += Backspace_MouseUp;
+                }
             }
         }
         private void FixFontSize(RichTextBox richTextBox, string fontFamily, float fontSize)
@@ -428,8 +477,6 @@ namespace WinFormsApp1
 
         private void HandleKeyStr(string keyStr)
         {
-            //Console.WriteLine($"Key pressed: {keyStr}");
-
             // targetInputField가 포커스를 가지고 있는지 확인
             if (targetInputField != null && !targetInputField.Focused)
             {
@@ -439,7 +486,6 @@ namespace WinFormsApp1
             if (targetInputField == null)
             {
                 Console.WriteLine("targetInputField is null.");
-                //return;
             }
 
             // 숫자나 특수 문자의 경우 바로 삽입
@@ -465,37 +511,13 @@ namespace WinFormsApp1
             switch (keyStr)
             {
                 case "Backspace":
-                    if (composing.Length > 0)
+                    if (!isBackspacePressed)
                     {
-                        // composing 버퍼에서 마지막 글자 제거
-                        composing = composing.Substring(0, composing.Length - 1);
-
-                        // 기존 입력된 문자 삭제
-                        RemoveOldBlock();
-
-                        // 새로운 조합 처리
-                        string newBlock = ProcessInput(composing);
-
-                        if (!string.IsNullOrEmpty(newBlock))
-                        {
-                            InsertTextAtCaret(newBlock);
-                            oldBlock = newBlock;
-                        }
-                        else
-                        {
-                            oldBlock = "";
-                        }
+                        isBackspacePressed = true;
+                        lastBackspacePressTime = DateTime.Now;
+                        StartBackspaceTimer();
                     }
-                    else
-                    {
-                        // targetInputField에서 문자 삭제
-                        if (targetInputField.SelectionStart > 0)
-                        {
-                            int selectionStart = targetInputField.SelectionStart;
-                            targetInputField.Text = targetInputField.Text.Remove(selectionStart - 1, 1);
-                            targetInputField.SelectionStart = selectionStart - 1;
-                        }
-                    }
+                    HandleBackspace();
                     break;
 
                 case "Space":
@@ -563,6 +585,41 @@ namespace WinFormsApp1
                         InsertTextAtCaret(keyStr);
                     }
                     break;
+            }
+        }
+
+        private void HandleBackspace()
+        {
+            if (composing.Length > 0)
+            {
+                // composing 버퍼에서 마지막 글자 제거
+                composing = composing.Substring(0, composing.Length - 1);
+
+                // 기존 입력된 문자 삭제
+                RemoveOldBlock();
+
+                // 새로운 조합 처리
+                string newBlock = ProcessInput(composing);
+
+                if (!string.IsNullOrEmpty(newBlock))
+                {
+                    InsertTextAtCaret(newBlock);
+                    oldBlock = newBlock;
+                }
+                else
+                {
+                    oldBlock = "";
+                }
+            }
+            else
+            {
+                // targetInputField에서 문자 삭제
+                if (targetInputField.SelectionStart > 0)
+                {
+                    int selectionStart = targetInputField.SelectionStart;
+                    targetInputField.Text = targetInputField.Text.Remove(selectionStart - 1, 1);
+                    targetInputField.SelectionStart = selectionStart - 1;
+                }
             }
         }
 
@@ -1028,51 +1085,6 @@ namespace WinFormsApp1
             }
         }
 
-        ///////////////////////////////// backspace 키 홀드 처리 /////////////////////////////////////////
-        private void Backspace_MouseDown(object sender, MouseEventArgs e)
-        {
-            // 터치 이벤트인 경우에만 처리
-            if (e.Button == MouseButtons.Left)
-            {
-                // 한 번 삭제
-                HandleKeyStr("Backspace");
-
-                // 타이머 설정
-                if (backspaceTimer == null)
-                {
-                    backspaceTimer = new System.Windows.Forms.Timer();
-                    backspaceTimer.Interval = DeleteInterval;
-                    backspaceTimer.Tick += BackspaceTimer_Tick;
-                }
-                backspaceTimer.Start();
-            }
-        }
-
-        private void Backspace_MouseUp(object sender, MouseEventArgs e)
-        {
-            // 터치 이벤트인 경우에만 처리
-            if (e.Button == MouseButtons.Left)
-            {
-                if (backspaceTimer != null)
-                {
-                    backspaceTimer.Stop();
-                    backspaceTimer.Tick -= BackspaceTimer_Tick;
-                    backspaceTimer.Dispose();
-                    backspaceTimer = null;
-                }
-            }
-        }
-
-        private void BackspaceTimer_Tick(object sender, EventArgs e)
-        {
-            // 타이머가 실행 중일 때만 삭제 실행
-            if (backspaceTimer != null && backspaceTimer.Enabled)
-            {
-                HandleKeyStr("Backspace");
-            }
-        }
-        ///////////////////////////////// backspace 키 홀드 처리 /////////////////////////////////////////
-
         public void UpdateKeysToLowerEng()
         {
             keys[0] = new string[] { "Next" };
@@ -1146,6 +1158,27 @@ namespace WinFormsApp1
         {
             this.Enabled = enable;
         }
+
+        private void Backspace_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (!isBackspacePressed)
+            {
+                isBackspacePressed = true;
+                lastBackspacePressTime = DateTime.Now;
+                StartBackspaceTimer();
+            }
+            HandleBackspace();
+        }
+
+        private void Backspace_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (isBackspacePressed)
+            {
+                isBackspacePressed = false;
+                StopBackspaceTimer();
+            }
+        }
     }
 
 }
+
