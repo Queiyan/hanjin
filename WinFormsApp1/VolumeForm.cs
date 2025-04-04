@@ -265,5 +265,15 @@ namespace WinFormsApp1
         {
 
         }
+
+        private void dev_Click(object sender, EventArgs e)
+        {
+            // dev 테스트용
+            VolumeResultForm volumeResultForm = new VolumeResultForm(30, 40, 50);
+            volumeResultForm.Show();
+            this.Close();
+            // 마우스 커서 위치 초기화
+            Cursor.Position = new System.Drawing.Point(0, 300);
+        }
     }
 }

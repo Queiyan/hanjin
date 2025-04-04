@@ -1,0 +1,44 @@
+@charset "utf-8";
+
+/* -------- Titillium Web -------- */
+@import url('images/css2');
+
+/* -------- Open Sans -------- */
+@import url('images/css2');
+
+/* -------- NOTO Sans -------- */
+@import url('images/css2');
+
+/* -------- NOTO -------- */
+@font-face {
+	font-family: 'Noto Sans KR';
+	font-style: normal;
+	font-weight: 300;
+	src : url('images/NotoSansKR-Light.woff2') format('woff2'),
+		url('images/NotoSansKR-Light.woff') format('woff'),
+		url('images/NotoSansKR-Light.otf') format('opentype');
+}
+@font-face {
+	font-family: 'Noto Sans KR';
+	font-style: normal;
+	font-weight: 400;
+	src : url('images/NotoSansKR-Regular.woff2') format('woff2'),
+		url('images/NotoSansKR-Regular.woff') format('woff'),
+		url('images/NotoSansKR-Regular.otf') format('opentype');
+}
+@font-face {
+	font-family: 'Noto Sans KR';
+	font-style: normal;
+	font-weight: 500;
+	src : url('images/NotoSansKR-Medium.woff2') format('woff2'),
+		url('images/NotoSansKR-Medium.woff') format('woff'),
+		url('images/NotoSansKR-Medium.otf') format('opentype');
+}
+@font-face {
+	font-family: 'Noto Sans KR';
+	font-style: normal;
+	font-weight: 700;
+	src : url('images/NotoSansKR-Bold.woff2') format('woff2'),
+		url('images/NotoSansKR-Bold.woff') format('woff'),
+		url('images/NotoSansKR-Bold.otf') format('opentype');
+}

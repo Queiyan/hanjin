@@ -20,6 +20,7 @@ using System.Collections;
 using Newtonsoft.Json;
 using System.Security.Policy;
 using System.Net;
+using Microsoft.Data.SqlClient;
 
 namespace WinFormsApp1
 {
@@ -29,59 +30,15 @@ namespace WinFormsApp1
         private System.Windows.Forms.Timer countdownTimer;
         private int remainingTime = 30; // 30초 카운트다운
 
-        // 데이터
-        private string receiverPhoneNo;
-        private string receiverName;
-        private string receiverAddress;
-        private string receiverAddress2;
-        private string receiverAddress3;
-        private string senderPhoneNo;
-        private string senderName;
-        private string senderAddress;
-        private string senderAddress2;
-        private string senderAddress3;
-        private string productCategory;
-        private string productPriceInput;
-        private string requestInputField;
 
         private string coastFormat;
 
-        // request 데이터
-        private string clientId;
-        private string csrNum;
-        private string svcDiv;
-        private string request_address;
-        private string sndZip;
-        private string rcvZip;
-        private string request_msgKey;
+        string wblNumDashFormat = VoiceDataCtrl.WblNum.Insert(4, "-").Insert(9, "-");
 
-        // 한진 API 응답 데이터
-        private string resultCode;
-        private string resultMessage;
-        private string msgKey;
-        private string sTmlNam;
-        private string sTmlCod;
-        private string zipCod;
-        private string tmlNam;
-        private string tmlCod;
-        private string cenNam;
-        private string cenCod;
-        private string pdTim;
-        private string domRgn;
-        private string hubCod;
-        private string domMid;
-        private string grpRnk;
-        private string esNam;
-        private string esCod;
-        private string prtAdd;
-        private string dlvTyp;
-        private string svcNam;
-        private string ptnSrt;
-        private string srtNam;
-        private string wblNum;
+        // 키오스크 식별번호 추후 ini파일로 설정
+        private string stackAreaCode = "NHJ063800001";
 
-        // 응답 데이터 문자포매팅
-        private string wblNumDashFormat;
+        
 
         public InvoicePrintForm(int cos)
         {
@@ -90,22 +47,6 @@ namespace WinFormsApp1
             InitializeComponent();
 
             coastFormat = cos.ToString("N0");
-
-            receiverPhoneNo = DataCtrl.ReceiverPhoneNo;
-            receiverName = DataCtrl.ReceiverName;
-            receiverAddress = DataCtrl.ReceiverAddress;
-            receiverAddress2 = DataCtrl.ReceiverAddress2;
-            receiverAddress3 = DataCtrl.ReceiverAddress3;
-
-            senderPhoneNo = DataCtrl.SenderPhoneNo;
-            senderName = DataCtrl.SenderName;
-            senderAddress = DataCtrl.SenderAddress;
-            senderAddress2 = DataCtrl.SenderAddress2;
-            senderAddress3 = DataCtrl.SenderAddress3;
-
-            productCategory = DataCtrl.ProductCategory;
-            productPriceInput = DataCtrl.ProductPriceInput;
-            requestInputField = DataCtrl.RequestInputField;
 
             this.Show();
 
@@ -117,14 +58,14 @@ namespace WinFormsApp1
 
             Task.Delay(1000).Wait();
             HanjinAPI();
-            
+
             // 30초 후에 Go_Home 메서드 호출을 위한 타이머 설정
             autoCloseTimer = new System.Windows.Forms.Timer();
             autoCloseTimer.Interval = 30000; // 30초 (30000 밀리초)
             autoCloseTimer.Tick += AutoCloseTimer_Tick;
             autoCloseTimer.Start();
 
-            
+
         }
         private void InitializeCountdownTimer()
         {
@@ -169,85 +110,10 @@ namespace WinFormsApp1
         {
             try
             {
-                using (HttpClient client = new HttpClient())
-                {
-                    string apiKey = "rVz901GWhd1GNnbU04Hov4dUHsXK1WwB1SNoWRKX"; // API 키 사용
-                    string requestUrl = $"https://ebbapd.hjt.co.kr/v1/wbl/SMARTCU/print-wbl";
+                // 1. 라커 예약 처리
+                await ProcessLockerReservation();
 
-                    // 헤더에 x-api-key 추가
-                    client.DefaultRequestHeaders.Add("x-api-key", apiKey);
-
-                    clientId = "SMARTCU";
-                    csrNum = "9117159";
-                    svcDiv = "GN";
-                    request_address = "서울시 중구 소공로 88 한진빌딩 신관 9 층";
-                    sndZip = "04532";
-                    rcvZip = "04532";
-                    request_msgKey = "00001";
-
-                    var data = new
-                    {
-
-                        client_id = clientId,
-                        csr_num = csrNum,
-                        svc_div = svcDiv,
-                        address = request_address,
-                        snd_zip = sndZip,
-                        rcv_zip = rcvZip,
-                        msg_key = request_msgKey
-                        
-                    };
-
-                    try
-                    {
-                        string json = JsonConvert.SerializeObject(data);
-                        StringContent content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-
-                        HttpResponseMessage response = await client.PostAsync(requestUrl, content);
-                        response.EnsureSuccessStatusCode();
-
-                        string responseText = await response.Content.ReadAsStringAsync();
-                        var jsonResponse = JsonConvert.DeserializeObject<JObject>(responseText);
-
-                        // JSON 데이터 파싱
-                        resultCode = jsonResponse["result_code"]?.ToString() ?? "결과 없음";
-                        resultMessage = jsonResponse["result_message"]?.ToString() ?? "결과 없음";
-                        msgKey = jsonResponse["msg_key"]?.ToString() ?? "";
-                        sTmlNam = jsonResponse["s_tml_nam"]?.ToString() ?? "";
-                        sTmlCod = jsonResponse["s_tml_cod"]?.ToString() ?? "";
-                        zipCod = jsonResponse["zip_cod"]?.ToString() ?? "";
-                        tmlNam = jsonResponse["tml_nam"]?.ToString() ?? "";
-                        tmlCod = jsonResponse["tml_cod"]?.ToString() ?? "";
-                        cenNam = jsonResponse["cen_nam"]?.ToString() ?? "";
-                        cenCod = jsonResponse["cen_cod"]?.ToString() ?? "";
-                        pdTim = jsonResponse["pd_tim"]?.ToString() ?? "";
-                        domRgn = jsonResponse["dom_rgn"]?.ToString() ?? "";
-                        hubCod = jsonResponse["hub_cod"]?.ToString() ?? "";
-                        domMid = jsonResponse["dom_mid"]?.ToString() ?? "";
-                        grpRnk = jsonResponse["grp_rnk"]?.ToString() ?? "";
-                        esNam = jsonResponse["es_nam"]?.ToString() ?? "";
-                        esCod = jsonResponse["es_cod"]?.ToString() ?? "";
-                        prtAdd = jsonResponse["prt_add"]?.ToString() ?? "";
-                        dlvTyp = jsonResponse["dlv_typ"]?.ToString() ?? "";
-                        svcNam = jsonResponse["svc_nam"]?.ToString() ?? "";
-                        ptnSrt = jsonResponse["ptn_srt"]?.ToString() ?? "";
-                        srtNam = jsonResponse["srt_nam"]?.ToString() ?? "";
-                        wblNum = jsonResponse["wbl_num"]?.ToString() ?? "";
-                        wblNumDashFormat = wblNum.Insert(4, "-").Insert(9, "-");
-
-                        if (!resultCode.Equals("OK"))
-                        {
-                            new MsgWindow("API 통신 실패").Show();
-                        }
-
-                        Console.WriteLine($"Result Code: {resultCode}\nResult Message: {resultMessage}\nMsg Key: {msgKey}\nS Tml Nam: {sTmlNam}\nS Tml Cod: {sTmlCod}\nZip Cod: {zipCod}\nTml Nam: {tmlNam}\nTml Cod: {tmlCod}\nCen Nam: {cenNam}\nCen Cod: {cenCod}\nPd Tim: {pdTim}\nDom Rgn: {domRgn}\nHub Cod: {hubCod}\nDom Mid: {domMid}\nGrp Rnk: {grpRnk}\nEs Nam: {esNam}\nEs Cod: {esCod}\nPrt Add: {prtAdd}\nDlv Typ: {dlvTyp}\nSvc Nam: {svcNam}\nPtn Srt: {ptnSrt}\nSrt Nam: {srtNam}\nWbl Num: {wblNum}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                        new MsgWindow(ex.Message).Show();
-                    }
-                }
+                
             }
             catch (Exception ex)
             {
@@ -255,11 +121,173 @@ namespace WinFormsApp1
                 new MsgWindow(ex.Message).Show();
             }
 
-
             ShowPrinterWindow();
-
-            // 카운트다운 타이머 초기화
             InitializeCountdownTimer();
+        }
+
+        // 라커 예약 처리를 위한 새로운 메서드들
+        private async Task ProcessLockerReservation()
+        {
+            try
+            {
+                // TLS 1.2 설정
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+                string regId = await SaveToLocalDb();
+                Console.WriteLine($"데이터베이스 저장 완료. RegId: {regId}");
+
+                bool success = await SendParcelReservation(regId);
+                Console.WriteLine($"예약 결과: {success}");
+
+                if (!success)
+                {
+                    throw new Exception("예약 API가 실패 응답을 반환했습니다.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"예약 처리 상세 오류: {ex.Message}");
+                Console.WriteLine($"스택 트레이스: {ex.StackTrace}");
+                throw new Exception($"예약 처리 실패: {ex.Message}");
+            }
+        }
+
+        private async Task<string> SaveToLocalDb()
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection("Server=58.229.240.39,1433;Database=HANJIN_PARCEL_LOCKER;User Id=SMTUser;Password=SMTUserPass;TrustServerCertificate=True;Encrypt=True;TrustServerCertificate=True;"))
+                {
+                    await conn.OpenAsync();
+                    Console.WriteLine("데이터베이스 연결 성공");
+
+                    string query = @"
+                        INSERT INTO tblParcelSendInfo (
+                            IsMember, UserID, SenderName, SenderMobileNo, SenderPostCode, 
+                            SenderAddressMain, SenderAddressDetail, SenderComment, RecvName, 
+                            RecvMobileNo, RecvPostCode, RecvAddressMain, 
+                            RecvAddressDetail, GOD_NAM, TRN_FRE, ETC_FRE, EXT_FRE, 
+                            CreateDate, BoxSize, StackAreaCode, StackBoxNo, CreditNo
+                        ) VALUES (
+                            'N', @UserID, @SenderName, @SenderMobileNo, @SenderPostCode, 
+                            @SenderAddressMain, @SenderAddressDetail, @SenderComment, @RecvName, 
+                            @RecvMobileNo, @RecvPostCode, @RecvAddressMain, 
+                            @RecvAddressDetail, @GOD_NAM, @TRN_FRE, @ETC_FRE, @EXT_FRE, 
+                            GETDATE(), @BoxSize, @StackAreaCode, @StackBoxNo, @CreditNo
+                        );
+                        SELECT SCOPE_IDENTITY();";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@UserID", DataCtrl.SenderPhoneNo);
+                        cmd.Parameters.AddWithValue("@SenderName", DataCtrl.SenderName);
+                        cmd.Parameters.AddWithValue("@SenderMobileNo", DataCtrl.SenderPhoneNo);
+                        cmd.Parameters.AddWithValue("@SenderPostCode", DataCtrl.SenderAddress);
+                        cmd.Parameters.AddWithValue("@SenderAddressMain", DataCtrl.SenderAddress2);
+                        cmd.Parameters.AddWithValue("@SenderAddressDetail", DataCtrl.SenderAddress3);
+                        cmd.Parameters.AddWithValue("@SenderComment", DataCtrl.RequestInputField);
+                        cmd.Parameters.AddWithValue("@RecvName", DataCtrl.ReceiverName);
+                        cmd.Parameters.AddWithValue("@RecvMobileNo", DataCtrl.ReceiverPhoneNo);
+                        cmd.Parameters.AddWithValue("@RecvPostCode", DataCtrl.ReceiverAddress);
+                        cmd.Parameters.AddWithValue("@RecvAddressMain", DataCtrl.ReceiverAddress2);
+                        cmd.Parameters.AddWithValue("@RecvAddressDetail", DataCtrl.ReceiverAddress3);
+                        cmd.Parameters.AddWithValue("@GOD_NAM", DataCtrl.ProductCategory);
+                        cmd.Parameters.AddWithValue("@TRN_FRE", 0);
+                        cmd.Parameters.AddWithValue("@ETC_FRE", 0);
+                        cmd.Parameters.AddWithValue("@EXT_FRE", 0);
+                        cmd.Parameters.AddWithValue("@BoxSize", "M");
+                        cmd.Parameters.AddWithValue("@StackAreaCode", stackAreaCode);
+                        cmd.Parameters.AddWithValue("@StackBoxNo", 1);
+                        cmd.Parameters.AddWithValue("@CreditNo", "5469086");
+
+                        Console.WriteLine("데이터 저장 시도...");
+                        var result = await cmd.ExecuteScalarAsync();
+                        Console.WriteLine($"데이터 저장 결과: {result}");
+
+                        if (result == null)
+                        {
+                            throw new Exception("데이터 저장 실패: SCOPE_IDENTITY()가 null을 반환했습니다.");
+                        }
+
+                        return result.ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"데이터베이스 저장 상세 오류: {ex.Message}");
+                Console.WriteLine($"스택 트레이스: {ex.StackTrace}");
+                throw;
+            }
+        }
+
+        private async Task<bool> SendParcelReservation(string regId)
+        {
+            try
+            {
+                using (var handler = new HttpClientHandler())
+                {
+                    // SSL 인증서 검증 우회
+                    handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
+
+                    using (var client = new HttpClient(handler))
+                    {
+                        // TLS 1.2 설정
+                        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+                        // 기본 헤더 설정
+                        client.DefaultRequestHeaders.Accept.Clear();
+                        client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+                        // 요청 데이터 구성
+                        var content = new FormUrlEncodedContent(new[]
+                        {
+                            new KeyValuePair<string, string>("field", "H"),
+                            new KeyValuePair<string, string>("src", "3"),
+                            new KeyValuePair<string, string>("regId", regId)
+                        });
+
+                        Console.WriteLine($"라커 예약 요청 데이터: field=H&src=0&regId={regId}");
+
+                        var response = await client.PostAsync("https://58.229.240.39/hanjin_parcel/dispatch_parcel.php", content);
+                        var result = await response.Content.ReadAsStringAsync();
+
+                        Console.WriteLine($"라커 예약 API 응답 상태 코드: {response.StatusCode}");
+                        Console.WriteLine($"라커 예약 API 응답 헤더: {string.Join(", ", response.Headers.Select(h => $"{h.Key}={string.Join(",", h.Value)}"))}");
+                        Console.WriteLine($"라커 예약 API 응답: {result}");
+
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            throw new Exception($"API 호출 실패: {response.StatusCode} - {result}");
+                        }
+
+                        // 응답 결과 확인
+                        result = result.Trim();
+                        Console.WriteLine($"처리된 응답 결과: {result}");
+
+                        // 다양한 성공 응답 패턴 확인
+                        if (result.Equals("Ok", StringComparison.OrdinalIgnoreCase) ||
+                            result.Equals("OK", StringComparison.OrdinalIgnoreCase) ||
+                            result.Equals("ok", StringComparison.OrdinalIgnoreCase) ||
+                            result.Equals("success", StringComparison.OrdinalIgnoreCase) ||
+                            result.Equals("Success", StringComparison.OrdinalIgnoreCase) ||
+                            result.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+
+                        // 실패 시 상세 정보 로깅
+                        Console.WriteLine($"예약 실패 - 응답 내용: {result}");
+                        return false;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"라커 예약 API 호출 상세 오류: {ex.Message}");
+                Console.WriteLine($"스택 트레이스: {ex.StackTrace}");
+                throw;
+            }
         }
 
         public void ShowPrinterWindow()
@@ -291,59 +319,59 @@ namespace WinFormsApp1
     ^FO760,130^A0R,40,40^FD{wblNumDashFormat}^FS
 
     ; 메인 식별자 (CA 174 F) 및 번호 1.hub_cod 2.tml_cod 4.dom_mid
-    ^FO620,30^A0R,120,120^FD{hubCod} {tmlCod} {domMid}^FS
+    ^FO620,30^A0R,120,120^FD{VoiceDataCtrl.HubCod} {VoiceDataCtrl.TmlCod} {VoiceDataCtrl.DomMid}^FS
 
     ; 배송사원분류코드 16.es_cod, 배송사원명 11 es_nam
-    ^FO680,530^A0R,60,70^FD{esCod}^FS
-    ^FO620,500^A0R,55,55^FD{esNam}^FS
+    ^FO680,530^A0R,60,70^FD{VoiceDataCtrl.EsCod}^FS
+    ^FO620,500^A0R,55,55^FD{VoiceDataCtrl.EsNam}^FS
 
     ; 소분류 코드 - 배송사원 grp_rnk
-    ^FO650,710^A0R,70,90^FD{grpRnk}^FS
+    ^FO650,710^A0R,70,90^FD{VoiceDataCtrl.GrpRnk}^FS
 
     ; 제주/도서 구분 15.dom_rgn
     ^FO620,850^GB50,120,5^FS
-    ^FO625,865^A0R,30,30^FD{domRgn}^FS
+    ^FO625,865^A0R,30,30^FD{VoiceDataCtrl.DomRgn}^FS
 
     ; 도착지 집배점코드 5.cen_cod, 도착지 집배점명 6.cen_nam
-    ^FO620,680^A0R,25,25^FD{cenCod} {cenNam}^FS
+    ^FO620,680^A0R,25,25^FD{VoiceDataCtrl.CenCod} {VoiceDataCtrl.CenNam}^FS
 
     ; 발착 정보 s_tml_cod 7s_tml_nam
-    ^FO620,50^A0R,20,20^FD발지:{sTmlCod} {sTmlNam}^FS
+    ^FO620,50^A0R,20,20^FD발지:{VoiceDataCtrl.STmlCod} {VoiceDataCtrl.STmlNam}^FS
 
     ; 수령인 정보
-    ^FO570,450^A0R,30,30^FD{receiverPhoneNo}^FS
-    ^FO570,50^A0R,30,30^FD{receiverName}^FS
-    ^FO535,50^A0R,25,25rcmd^FD{receiverAddress2}^FS
-    ^FO480,50^A0R,40,40^FD{receiverAddress3}^FS
+    ^FO570,450^A0R,30,30^FD{DataCtrl.ReceiverPhoneNo}^FS
+    ^FO570,50^A0R,30,30^FD{DataCtrl.ReceiverName}^FS
+    ^FO535,50^A0R,25,25rcmd^FD{DataCtrl.ReceiverAddress2}^FS
+    ^FO480,50^A0R,40,40^FD{DataCtrl.ReceiverAddress3}^FS
 
     ; 바코드 : 도착지 터미널 바코드 (세로 방향, 크기 조정) tml_cod
     ^FO530,730^BY3
     ^BCR,70,N,N,N
-    ^FD{tmlCod}^FS
+    ^FD{VoiceDataCtrl.TmlCod}^FS
 
     ; 운임지급 기준 박스
     ^FO460,700^GB50,270,5^FS
     ^FO465,740^A0R,35,35^FD선불 {coastFormat}원^FS
 
     ; 송하인 정보
-    ^FO420,450^A0R,25,25^FD{senderPhoneNo}^FS
-    ^FO425,50^A0R,20,20^FD{senderName}^FS
-    ^FO400,50^A0R,20,20^FD{senderAddress2} {senderAddress3}^FS
+    ^FO420,450^A0R,25,25^FD{DataCtrl.SenderPhoneNo}^FS
+    ^FO425,50^A0R,20,20^FD{DataCtrl.SenderName}^FS
+    ^FO400,50^A0R,20,20^FD{DataCtrl.SenderAddress2} {DataCtrl.SenderAddress3}^FS
 
     ; 물품 정보 (FS형)
-    ^FO310,10^A0R,50,50^FD분류 : {productCategory}^FS
-    ^FO225,10^A0R,40,40^FD물품가액 : {productPriceInput} 원^FS
+    ; ^FO310,10^A0R,50,50^FD분류 : {DataCtrl.ProductCategory}^FS
+    ; ^FO225,10^A0R,40,40^FD물품가액 : {DataCtrl.ProductPriceInput} 원^FS
 
     ; 바코드 (세로 방향, 크기 조정) wbl_num
     ^FO60,600^BY2
     ^BCR,120,N,N,N
-    ^FD{wblNum}^FS
+    ^FD{VoiceDataCtrl.WblNum}^FS
 
     ; 바코드 하단 숫자 포맷 9.wbl_num
     ^FO20,680^A0R,30,30^FD{wblNumDashFormat}^FS
 
     ; 하단 배송메세지 (작은 폰트) 14.
-    ^FO90,20^A0R,25,25^FD{requestInputField}^FS
+    ^FO90,20^A0R,25,25^FD{DataCtrl.RequestInputField}^FS
 
     ^XZ";
 
@@ -372,8 +400,10 @@ namespace WinFormsApp1
         {
             if (!MsgWindow.IsShowing)
             {
+                autoCloseTimer.Stop();
                 countdownTimer.Stop();
                 DataCtrl.ClearAll();
+                VoiceDataCtrl.ClearAll();
                 new HomeForm().Show();
                 Task.Delay(500).ContinueWith(t => this.Close(), TaskScheduler.FromCurrentSynchronizationContext());
                 // 마우스 커서 위치 초기화

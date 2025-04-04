@@ -59,12 +59,14 @@ namespace WinFormsApp1
             ///
 
             /////////////////////////////////////////////결제 테스트/////////////////////////////////////////////
-            DataCtrl.ProductPriceInput = "1,004";
+            DataCtrl.ProductPriceInput = "500";
 
-            int costData = 1004;
+            int costData = 500;
             double sizeData = 120;
 
             PaymentForm paymentForm = new PaymentForm(sizeData, costData);
+
+            this.Close();
         }
 
         private void MobileMenu_Load(object sender, EventArgs e)

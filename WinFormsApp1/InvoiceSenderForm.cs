@@ -410,7 +410,6 @@ namespace WinFormsApp1
             }
         }
 
-
         public void Go_Home(object sender, EventArgs e)
         {
             if (!MsgWindow.IsShowing)
@@ -778,7 +777,7 @@ namespace WinFormsApp1
         {
             NameInput.Text = "홍길동";
             PhoneNoInput.Text = "010-1234-5678";
-            AddressInput.Text = "11111";
+            AddressInput.Text = "04098";
             Address2Input.Text = "서울특별시 마포구 창전로 70";
             Address3Input.Text = "6층";
         }

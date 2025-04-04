@@ -23,14 +23,20 @@ namespace WinFormsApp1
         // 60초 뒤 홈 화면으로 이동하는 타이머
         private System.Timers.Timer inactivityTimer;
 
-        public ReservationInfo()
+        ReservationResponse response = new ReservationResponse();
+
+        public ReservationInfo(ReservationResponse response)
         {
+            this.response = response;
+
             InitializeComponent();
             this.Opacity = 0; // 초기 투명도 설정
 
             this.Show();
 
-            this.Load += EasyMenu_Load;
+            ReservationResponse_Load();
+
+            DataCtrlSave();
 
             this.Shown += async (s, e) =>
             {
@@ -118,6 +124,8 @@ namespace WinFormsApp1
 
         public void Go_Home(object sender, EventArgs e)
         {
+            DataCtrl.ClearAll();
+            response.ClearData();
             Task.Delay(500).ContinueWith(t => this.Close(), TaskScheduler.FromCurrentSynchronizationContext());
             Task.Delay(500).ContinueWith(t => numpad.Close(), TaskScheduler.FromCurrentSynchronizationContext());
             HomeForm home = new HomeForm();
@@ -125,22 +133,153 @@ namespace WinFormsApp1
 
         public void Go_Back(object sender, EventArgs e)
         {
+            DataCtrl.ClearAll();
+            response.ClearData();
             Task.Delay(500).ContinueWith(t => this.Close(), TaskScheduler.FromCurrentSynchronizationContext());
             Task.Delay(500).ContinueWith(t => numpad.Close(), TaskScheduler.FromCurrentSynchronizationContext());
-            HomeForm home = new HomeForm();
+            ReservationMenu reservationMenu = new ReservationMenu();
         }
 
         public void Go_Next(object sender, EventArgs e)
         {
             Task.Delay(500).ContinueWith(t => this.Close(), TaskScheduler.FromCurrentSynchronizationContext());
             Task.Delay(500).ContinueWith(t => numpad.Close(), TaskScheduler.FromCurrentSynchronizationContext());
-            HomeForm home = new HomeForm();
+            VolumeForm volumeForm = new VolumeForm();
         }
 
-        private void EasyMenu_Load(object sender, EventArgs e)
+        private void ReservationResponse_Load()
         {
+            senderName.Text = response.SndrNm;
+            senderHP.Text = FormatPhoneNumber(response.SndrMobileNo);
+            senderAddress.Text = response.SndrBaseAddr + " " + response.SndrDtlAddr;
 
+            receiverName.Text = response.RcvrNm;
+            receiverHP.Text = FormatPhoneNumber(response.RcvrMobileNo);
+            receiverAddress.Text = response.RcvrBaseAddr + " " + response.RcvrDtlAddr;
         }
 
+        private string FormatPhoneNumber(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            input = input.Replace("-", "");
+            StringBuilder formatted = new StringBuilder();
+
+            string[] prefixes = {
+        "010", "011", "016", "017", "018", "019",
+        "02",
+        "031", "032", "033", "041", "042", "043", "044",
+        "051", "052", "053", "054", "055",
+        "061", "062", "063", "064",
+        "070", "080"
+    };
+
+            string matchedPrefix = prefixes.FirstOrDefault(prefix => input.StartsWith(prefix));
+
+            if (matchedPrefix != null)
+            {
+                formatted.Append(matchedPrefix);
+
+                string remaining = input.Substring(matchedPrefix.Length);
+
+                if (matchedPrefix.Length == 3)
+                {
+                    if (remaining.Length > 0)
+                    {
+                        formatted.Append("-");
+                        if (remaining.Length <= 7)
+                        {
+                            if (remaining.Length <= 3)
+                            {
+                                formatted.Append(remaining);
+                            }
+                            else
+                            {
+                                formatted.Append(remaining.Substring(0, 3));
+                                formatted.Append("-");
+                                formatted.Append(remaining.Substring(3));
+                            }
+                        }
+                        else
+                        {
+                            formatted.Append(remaining.Substring(0, 4));
+                            formatted.Append("-");
+                            formatted.Append(remaining.Substring(4));
+                        }
+                    }
+                }
+                else if (matchedPrefix.StartsWith("02"))
+                {
+                    if (remaining.Length > 0)
+                    {
+                        formatted.Append("-");
+                        if (remaining.Length <= 3)
+                        {
+                            formatted.Append(remaining);
+                        }
+                        else if (remaining.Length <= 7)
+                        {
+                            formatted.Append(remaining.Substring(0, 3));
+                            formatted.Append("-");
+                            formatted.Append(remaining.Substring(3));
+                        }
+                        else
+                        {
+                            formatted.Append(remaining.Substring(0, 4));
+                            formatted.Append("-");
+                            formatted.Append(remaining.Substring(4));
+                        }
+                    }
+                }
+                else
+                {
+                    if (remaining.Length > 0)
+                    {
+                        formatted.Append("-");
+                        if (remaining.Length <= 4)
+                        {
+                            formatted.Append(remaining);
+                        }
+                        else if (remaining.Length <= 8)
+                        {
+                            formatted.Append(remaining.Substring(0, 4));
+                            formatted.Append("-");
+                            formatted.Append(remaining.Substring(4));
+                        }
+                        else
+                        {
+                            formatted.Append(remaining.Substring(0, 4));
+                            formatted.Append("-");
+                            formatted.Append(remaining.Substring(4));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                formatted.Append(input);
+            }
+
+            return formatted.ToString();
+        }
+
+
+
+
+        private void DataCtrlSave()
+        {
+            DataCtrl.SenderName = response.SndrNm;
+            DataCtrl.SenderPhoneNo = response.SndrMobileNo;
+            DataCtrl.SenderAddress = response.SndrZip;
+            DataCtrl.SenderAddress2 = response.SndrBaseAddr;
+            DataCtrl.SenderAddress3 = response.SndrDtlAddr;
+
+            DataCtrl.ReceiverName = response.RcvrNm;
+            DataCtrl.ReceiverPhoneNo = response.RcvrMobileNo;
+            DataCtrl.ReceiverAddress = response.RcvrZip;
+            DataCtrl.ReceiverAddress2 = response.RcvrBaseAddr;
+            DataCtrl.ReceiverAddress3 = response.RcvrDtlAddr;
+        }
     }
 }

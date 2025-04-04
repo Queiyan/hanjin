@@ -3,30 +3,37 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 
 public class ApiHelper
 {
     private static readonly string clientId = "SMARTCU";
     private static readonly string secretKey = "G5SMSOPqKKcqBCumRHydAIQd13zN7GavkWqA8AcS9ATtB2ZgGGGoyhEmoRzQSzcp";
-    private static readonly string apiKey = "EXAoyZ4VhU3FcFrIWVZWZjlHdpBfnlwkHPOkfWEzjMZ1iYwQ"; // x-api-key 값
+    private static readonly string apiKey = "EXAoyZ4VhU3FcFrIWVZWZjlHdpBfnlwkHPOkfWEzjMZ1iYwQ";
 
-    public static async Task<string> SendRequestAsync(string url, HttpMethod method)
+    public static async Task<string> SendRequestAsync(string reservNum)
     {
         string timestamp = CreateTimestamp();
-        string queryString = GetQueryString(url);
-        string message = timestamp + method.Method + queryString + secretKey;
+        string encodedReservNum = Uri.EscapeDataString(reservNum);
+        string apiUrl = $"https://api-stg.hanjin.com/parcel-delivery/v1/rsv/retrieve-rsvno/{encodedReservNum}";
+
+        // ✅ Postman과 동일한 message 생성
+        string method = "GET";
+        string queryString = ""; // GET 요청이므로 Query Parameter 없음
+        string message = $"{timestamp}{method}{queryString}{secretKey}";
+
+        // ✅ HMAC-SHA256 서명 생성 (HEX 변환 적용)
         string signature = ComputeHmacSHA256(message, secretKey);
 
-        string authorization = $"client_id{clientId}&timestamp={timestamp}&signature={signature}";
+        // ✅ Authorization 헤더 포맷 (공백 유지, 쉼표 제거)
+        string authorization = $"client_id={clientId} timestamp={timestamp} signature={signature}";
 
         using (HttpClient client = new HttpClient())
         {
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", authorization);
+            client.DefaultRequestHeaders.Add("x-api-key", apiKey);
+            // Content-Type 헤더가 GET 요청에서는 일반적으로 필요 없으므로 생략해도 됩니다.
 
-            client.DefaultRequestHeaders.Add("Authorization", authorization);
-            client.DefaultRequestHeaders.Add("x-api-key", apiKey); // 한진 API에서 요구하는 키 추가
-
-            HttpResponseMessage response = await client.SendAsync(new HttpRequestMessage(method, url));
+            HttpResponseMessage response = await client.GetAsync(apiUrl);
             string responseContent = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
@@ -40,8 +47,7 @@ public class ApiHelper
 
     private static string CreateTimestamp()
     {
-
-        return DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+        return DateTime.Now.ToString("yyyyMMddHHmmss");
     }
 
     private static string ComputeHmacSHA256(string message, string key)
@@ -49,13 +55,9 @@ public class ApiHelper
         using (HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(key)))
         {
             byte[] hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
+
+            // ✅ Postman과 동일한 HEX 문자열 변환
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
         }
-    }
-
-    private static string GetQueryString(string url)
-    {
-        Uri uri = new Uri(url);
-        return uri.Query.Length > 0 ? HttpUtility.UrlDecode(uri.Query.Substring(1)) : "";
     }
 }

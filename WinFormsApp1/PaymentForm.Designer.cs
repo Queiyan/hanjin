@@ -32,6 +32,7 @@ namespace WinFormsApp1
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PaymentForm));
             panel1 = new Panel();
+            devBtn = new PictureBox();
             BackBtn = new PressKeyPictureBox();
             HomeBtn = new PressKeyPictureBox();
             panel2 = new Panel();
@@ -42,6 +43,7 @@ namespace WinFormsApp1
             pictureBox2 = new PictureBox();
             pictureBox3 = new PictureBox();
             panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)devBtn).BeginInit();
             ((System.ComponentModel.ISupportInitialize)BackBtn).BeginInit();
             ((System.ComponentModel.ISupportInitialize)HomeBtn).BeginInit();
             panel2.SuspendLayout();
@@ -56,12 +58,22 @@ namespace WinFormsApp1
             // 
             panel1.BackColor = Color.Transparent;
             panel1.BackgroundImage = (Image)resources.GetObject("panel1.BackgroundImage");
+            panel1.Controls.Add(devBtn);
             panel1.Controls.Add(BackBtn);
             panel1.Controls.Add(HomeBtn);
             panel1.Location = new Point(0, 0);
             panel1.Name = "panel1";
             panel1.Size = new Size(1024, 180);
             panel1.TabIndex = 1;
+            // 
+            // devBtn
+            // 
+            devBtn.Location = new Point(372, 46);
+            devBtn.Name = "devBtn";
+            devBtn.Size = new Size(263, 91);
+            devBtn.TabIndex = 3;
+            devBtn.TabStop = false;
+            devBtn.Click += devBtn_Click;
             // 
             // BackBtn
             // 
@@ -184,6 +196,7 @@ namespace WinFormsApp1
             Load += PaymentForm_Load;
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)devBtn).EndInit();
             ((System.ComponentModel.ISupportInitialize)BackBtn).EndInit();
             ((System.ComponentModel.ISupportInitialize)HomeBtn).EndInit();
             panel2.ResumeLayout(false);
@@ -210,5 +223,6 @@ namespace WinFormsApp1
         private PressKeyPictureBox pictureBox4;
         private PictureBox pictureBox2;
         private PictureBox pictureBox3;
+        private PictureBox devBtn;
     }
 }

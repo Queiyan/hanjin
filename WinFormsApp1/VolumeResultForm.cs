@@ -168,15 +168,15 @@ namespace WinFormsApp1
             }
             else if (boxLength <= 120)
             {
-                cos = 4000;
+                cos = 3500;
             }
             else if (boxLength <= 140)
             {
-                cos = 5000;
+                cos = 4500;
             }
             else if (boxLength <= 160)
             {
-                cos = 6000;
+                cos = 5500;
             }
             else
             {

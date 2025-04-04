@@ -31,30 +31,36 @@ namespace WinFormsApp1
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ReservationInfo));
-            panel1 = new Panel();
+            menuAria = new Panel();
             BackBtn = new PressKeyPictureBox();
             HomeBtn = new PressKeyPictureBox();
-            pictureBox1 = new PictureBox();
-            pictureBox2 = new PictureBox();
-            pictureBox3 = new PictureBox();
-            panel1.SuspendLayout();
+            senderAria = new Panel();
+            senderHP = new Label();
+            senderAddress = new Label();
+            senderName = new Label();
+            receiverAria = new Panel();
+            receiverHP = new Label();
+            receiverAddress = new Label();
+            receiverName = new Label();
+            nextBtn = new PictureBox();
+            menuAria.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)BackBtn).BeginInit();
             ((System.ComponentModel.ISupportInitialize)HomeBtn).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
+            senderAria.SuspendLayout();
+            receiverAria.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)nextBtn).BeginInit();
             SuspendLayout();
             // 
-            // panel1
+            // menuAria
             // 
-            panel1.BackColor = Color.Transparent;
-            panel1.BackgroundImage = (Image)resources.GetObject("panel1.BackgroundImage");
-            panel1.Controls.Add(BackBtn);
-            panel1.Controls.Add(HomeBtn);
-            panel1.Location = new Point(0, 0);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(1024, 180);
-            panel1.TabIndex = 0;
+            menuAria.BackColor = Color.Transparent;
+            menuAria.BackgroundImage = (Image)resources.GetObject("menuAria.BackgroundImage");
+            menuAria.Controls.Add(BackBtn);
+            menuAria.Controls.Add(HomeBtn);
+            menuAria.Location = new Point(0, 0);
+            menuAria.Name = "menuAria";
+            menuAria.Size = new Size(1024, 180);
+            menuAria.TabIndex = 0;
             // 
             // BackBtn
             // 
@@ -82,32 +88,85 @@ namespace WinFormsApp1
             HomeBtn.TabStop = false;
             HomeBtn.Click += Go_Home;
             // 
-            // pictureBox1
+            // senderAria
             // 
-            pictureBox1.BackgroundImage = (Image)resources.GetObject("pictureBox1.BackgroundImage");
-            pictureBox1.Location = new Point(92, 200);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(841, 386);
-            pictureBox1.TabIndex = 1;
-            pictureBox1.TabStop = false;
+            senderAria.BackgroundImage = (Image)resources.GetObject("senderAria.BackgroundImage");
+            senderAria.Controls.Add(senderHP);
+            senderAria.Controls.Add(senderAddress);
+            senderAria.Controls.Add(senderName);
+            senderAria.Location = new Point(92, 234);
+            senderAria.Name = "senderAria";
+            senderAria.Size = new Size(841, 386);
+            senderAria.TabIndex = 1;
             // 
-            // pictureBox2
+            // senderHP
             // 
-            pictureBox2.BackgroundImage = (Image)resources.GetObject("pictureBox2.BackgroundImage");
-            pictureBox2.Location = new Point(92, 622);
-            pictureBox2.Name = "pictureBox2";
-            pictureBox2.Size = new Size(841, 386);
-            pictureBox2.TabIndex = 2;
-            pictureBox2.TabStop = false;
+            senderHP.Font = new Font("Pretendard", 30F, FontStyle.Regular, GraphicsUnit.Point, 129);
+            senderHP.Location = new Point(244, 312);
+            senderHP.Name = "senderHP";
+            senderHP.Size = new Size(318, 46);
+            senderHP.TabIndex = 2;
             // 
-            // pictureBox3
+            // senderAddress
             // 
-            pictureBox3.BackgroundImage = (Image)resources.GetObject("pictureBox3.BackgroundImage");
-            pictureBox3.Location = new Point(144, 1116);
-            pictureBox3.Name = "pictureBox3";
-            pictureBox3.Size = new Size(733, 139);
-            pictureBox3.TabIndex = 3;
-            pictureBox3.TabStop = false;
+            senderAddress.Font = new Font("Pretendard", 20F, FontStyle.Regular, GraphicsUnit.Point, 129);
+            senderAddress.Location = new Point(244, 193);
+            senderAddress.Name = "senderAddress";
+            senderAddress.Size = new Size(563, 87);
+            senderAddress.TabIndex = 1;
+            // 
+            // senderName
+            // 
+            senderName.Font = new Font("Pretendard", 28F, FontStyle.Regular, GraphicsUnit.Point, 129);
+            senderName.Location = new Point(244, 83);
+            senderName.Name = "senderName";
+            senderName.Size = new Size(200, 50);
+            senderName.TabIndex = 0;
+            // 
+            // receiverAria
+            // 
+            receiverAria.BackgroundImage = (Image)resources.GetObject("receiverAria.BackgroundImage");
+            receiverAria.Controls.Add(receiverHP);
+            receiverAria.Controls.Add(receiverAddress);
+            receiverAria.Controls.Add(receiverName);
+            receiverAria.Location = new Point(92, 656);
+            receiverAria.Name = "receiverAria";
+            receiverAria.Size = new Size(841, 386);
+            receiverAria.TabIndex = 2;
+            // 
+            // receiverHP
+            // 
+            receiverHP.Font = new Font("Pretendard", 30F, FontStyle.Regular, GraphicsUnit.Point, 129);
+            receiverHP.Location = new Point(244, 311);
+            receiverHP.Name = "receiverHP";
+            receiverHP.Size = new Size(318, 46);
+            receiverHP.TabIndex = 5;
+            // 
+            // receiverAddress
+            // 
+            receiverAddress.Font = new Font("Pretendard", 20F, FontStyle.Regular, GraphicsUnit.Point, 129);
+            receiverAddress.Location = new Point(244, 192);
+            receiverAddress.Name = "receiverAddress";
+            receiverAddress.Size = new Size(563, 87);
+            receiverAddress.TabIndex = 4;
+            // 
+            // receiverName
+            // 
+            receiverName.Font = new Font("Pretendard", 28F, FontStyle.Regular, GraphicsUnit.Point, 129);
+            receiverName.Location = new Point(244, 83);
+            receiverName.Name = "receiverName";
+            receiverName.Size = new Size(200, 50);
+            receiverName.TabIndex = 3;
+            // 
+            // nextBtn
+            // 
+            nextBtn.BackgroundImage = (Image)resources.GetObject("nextBtn.BackgroundImage");
+            nextBtn.Location = new Point(34, 1116);
+            nextBtn.Name = "nextBtn";
+            nextBtn.Size = new Size(956, 139);
+            nextBtn.TabIndex = 3;
+            nextBtn.TabStop = false;
+            nextBtn.Click += Go_Next;
             // 
             // ReservationInfo
             // 
@@ -116,33 +175,38 @@ namespace WinFormsApp1
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
             BackColor = Color.White;
             ClientSize = new Size(1024, 1280);
-            Controls.Add(pictureBox3);
-            Controls.Add(pictureBox2);
-            Controls.Add(pictureBox1);
-            Controls.Add(panel1);
+            Controls.Add(nextBtn);
+            Controls.Add(receiverAria);
+            Controls.Add(senderAria);
+            Controls.Add(menuAria);
             FormBorderStyle = FormBorderStyle.None;
             Name = "ReservationInfo";
             ShowInTaskbar = false;
             Text = "EasyMenu";
             WindowState = FormWindowState.Maximized;
-            Load += EasyMenu_Load;
-            panel1.ResumeLayout(false);
-            panel1.PerformLayout();
+            menuAria.ResumeLayout(false);
+            menuAria.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)BackBtn).EndInit();
             ((System.ComponentModel.ISupportInitialize)HomeBtn).EndInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox3).EndInit();
+            senderAria.ResumeLayout(false);
+            receiverAria.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)nextBtn).EndInit();
             ResumeLayout(false);
         }
 
         #endregion
 
-        private Panel panel1;
+        private Panel menuAria;
         private PressKeyPictureBox BackBtn;
         private PressKeyPictureBox HomeBtn;
-        private PictureBox pictureBox1;
-        private PictureBox pictureBox2;
-        private PictureBox pictureBox3;
+        private Panel senderAria;
+        private Panel receiverAria;
+        private PictureBox nextBtn;
+        private Label senderName;
+        private Label senderHP;
+        private Label senderAddress;
+        private Label receiverHP;
+        private Label receiverAddress;
+        private Label receiverName;
     }
 }

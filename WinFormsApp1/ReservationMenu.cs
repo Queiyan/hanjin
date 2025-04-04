@@ -31,6 +31,8 @@ namespace WinFormsApp1
 
         private String reservNum;
 
+        ReservationResponse response = new ReservationResponse();
+
         public ReservationMenu()
         {
             InitializeComponent();
@@ -172,54 +174,63 @@ namespace WinFormsApp1
         {
             Task.Delay(500).ContinueWith(t => this.Close(), TaskScheduler.FromCurrentSynchronizationContext());
             Task.Delay(500).ContinueWith(t => numpad.Close(), TaskScheduler.FromCurrentSynchronizationContext());
-            HomeForm home = new HomeForm();
+            ReservationInfo reservationInfo = new ReservationInfo(response);
         }
 
-        private async void Keyboard_NextKeyPressed(object sender, EventArgs e)
+        private async Task Keyboard_NextKeyPressedAsync(object sender, EventArgs e)
         {
-            reservNum = ReservNumInput.Text;
+            string reservNum = ReservNumInput.Text.Trim();
 
-            // API 엔드포인트 URL
-            string apiUrl = $"https://api-stg.hanjin.com/parcel-delivery/v1/rsv/retrieve-rsvno/{reservNum}";
-            HttpMethod method = HttpMethod.Get;
+            if (string.IsNullOrEmpty(reservNum))
+            {
+                new MsgWindow("예약번호를 입력해주세요").Show();
+                return;
+            }
+
+            if (reservNum.Length < 9)
+            {
+                new MsgWindow("예약번호는 정확히 9자리로 입력되어야 합니다.\n다시 한 번 확인해 주시기 바랍니다.").Show();
+                return;
+            }
 
             try
             {
                 // API 요청 보내기
-                string responseJson = await ApiHelper.SendRequestAsync(apiUrl, method);
+                string responseJson = await ApiHelper.SendRequestAsync(reservNum);
 
                 Console.WriteLine($"API 응답: {responseJson}");
 
                 // JSON 파싱
-                using (JsonDocument jsonDoc = JsonDocument.Parse(responseJson))
+                response = JsonSerializer.Deserialize<ReservationResponse>(responseJson);
+
+                if (response != null && response.ResultCode == "OK")
                 {
-                    JsonElement root = jsonDoc.RootElement;
-
-                    // 필요한 데이터 추출 (예: status 값)
-                    if (root.TryGetProperty("status", out JsonElement statusElement))
-                    {
-                        string status = statusElement.GetString();
-
-                        if (status == "success")
-                        {
-                            Go_Next(sender, e);
-                        }
-                        else
-                        {
-                            MessageBox.Show("예약 정보를 찾을 수 없습니다.");
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show("API 응답 데이터 형식이 올바르지 않습니다.");
-                    }
+                    // 성공하면 다음 화면으로 이동
+                    Go_Next(sender, e);
                 }
+                else
+                {
+                    new MsgWindow("예약 정보를 찾을 수 없습니다").Show();
+                }
+            }
+            catch (HttpRequestException httpEx)
+            {
+                MessageBox.Show($"네트워크 오류 발생: {httpEx.Message}");
+            }
+            catch (JsonException jsonEx)
+            {
+                MessageBox.Show("서버 응답이 JSON 형식이 아닙니다.");
+                Console.WriteLine($"JSON 파싱 오류: {jsonEx.Message}");
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"오류 발생: {ex.Message}");
-                Console.WriteLine($"오류 발생: {ex.Message}");
             }
+        }
+
+        private async void Keyboard_NextKeyPressed(object sender, EventArgs e)
+        {
+            await Keyboard_NextKeyPressedAsync(sender, e);
         }
 
         private void EasyMenu_Load(object sender, EventArgs e)

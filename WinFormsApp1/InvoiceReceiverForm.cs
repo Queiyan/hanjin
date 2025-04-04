@@ -775,9 +775,9 @@ namespace WinFormsApp1
         {
             NameInput.Text = "홍길동";
             PhoneNoInput.Text = "010-1234-5678";
-            AddressInput.Text = "11111";
-            Address2Input.Text = "서울특별시 마포구 창전로 70";
-            Address3Input.Text = "6층";
+            AddressInput.Text = "15654";
+            Address2Input.Text = "경기도 안산시 단원구 풍도2길 20";
+            Address3Input.Text = "풍도동";
         }
     }
 }

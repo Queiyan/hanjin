@@ -38,8 +38,14 @@ namespace WinFormsApp1
 
         public void Go_Mobile(object sender, EventArgs e)
         {
-            MobileMenu mobileMenu = new MobileMenu();
-            Task.Delay(600).ContinueWith(t => this.Close(), TaskScheduler.FromCurrentSynchronizationContext());
+            // dev 테스트용
+            //MobileMenu mobileMenu = new MobileMenu();
+            //Task.Delay(600).ContinueWith(t => this.Close(), TaskScheduler.FromCurrentSynchronizationContext());
+
+            CautionForm cautionForm = new CautionForm();
+            Task.Delay(500).ContinueWith(t => this.Close(), TaskScheduler.FromCurrentSynchronizationContext());
+            Cursor.Position = new System.Drawing.Point(0, 200);
+
         }
 
         private void HomeForm_Load(object sender, EventArgs e)

@@ -481,7 +481,6 @@ namespace WinFormsApp1
         {
             ProductCategory.Text = "가전제품";
             ProductPriceInput.Text = "1,000,000";
-            RequestInputField.Text = "취급주의";
         }
     }
 }

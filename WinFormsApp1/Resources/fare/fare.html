@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>택배 요금</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            width: 956px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            color: #0072C6;
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1.1rem;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            text-align: center;
+            padding: 12px;
+        }
+
+        th {
+            background-color: #f7f9fc;
+        }
+
+        .section-title {
+            background-color: #eef5fc;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .note {
+            margin-top: 24px;
+            font-size: 1rem;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>택배 요금</h2>
+    <table>
+        <tr>
+            <th class="section-title">구분</th>
+            <th>소형</th>
+            <th>중형</th>
+            <th>대형</th>
+            <th>특대형</th>
+        </tr>
+        <tr>
+            <td class="section-title">택배 요금</td>
+            <td>3,000원</td>
+            <td>3,500원</td>
+            <td>4,500원</td>
+            <td>5,500원</td>
+        </tr>
+        <tr>
+            <td class="section-title">규격<br>(세 변의 합)</td>
+            <td>100cm 이하</td>
+            <td>120cm 이하</td>
+            <td>140cm 이하</td>
+            <td>160cm 이하</td>
+        </tr>
+    </table>
+
+    <div class="note">
+        * 제주/도서/연륙/산간 지역은 중량, 부피에 따라 기본 요금 외에 추가 요금이 발생할 수 있습니다.
+    </div>
+
+</body>
+</html>

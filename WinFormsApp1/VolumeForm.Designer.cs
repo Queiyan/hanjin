@@ -35,12 +35,14 @@ namespace WinFormsApp1
             BackBtn = new PressKeyPictureBox();
             HomeBtn = new PressKeyPictureBox();
             panel1 = new Panel();
+            devBtn = new PictureBox();
             axWindowsMediaPlayer1 = new AxWindowsMediaPlayer();
             pictureBox2 = new PictureBox();
             pictureBox3 = new PressKeyPictureBox();
             ((System.ComponentModel.ISupportInitialize)BackBtn).BeginInit();
             ((System.ComponentModel.ISupportInitialize)HomeBtn).BeginInit();
             panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)devBtn).BeginInit();
             ((System.ComponentModel.ISupportInitialize)axWindowsMediaPlayer1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
@@ -77,12 +79,22 @@ namespace WinFormsApp1
             // 
             panel1.BackColor = Color.Transparent;
             panel1.BackgroundImage = (Image)resources.GetObject("panel1.BackgroundImage");
+            panel1.Controls.Add(devBtn);
             panel1.Controls.Add(BackBtn);
             panel1.Controls.Add(HomeBtn);
             panel1.Location = new Point(0, 0);
             panel1.Name = "panel1";
             panel1.Size = new Size(1024, 180);
             panel1.TabIndex = 5;
+            // 
+            // devBtn
+            // 
+            devBtn.Location = new Point(322, 49);
+            devBtn.Name = "devBtn";
+            devBtn.Size = new Size(386, 86);
+            devBtn.TabIndex = 2;
+            devBtn.TabStop = false;
+            devBtn.Click += dev_Click;
             // 
             // axWindowsMediaPlayer1
             // 
@@ -135,6 +147,7 @@ namespace WinFormsApp1
             ((System.ComponentModel.ISupportInitialize)HomeBtn).EndInit();
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)devBtn).EndInit();
             ((System.ComponentModel.ISupportInitialize)axWindowsMediaPlayer1).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox3).EndInit();
@@ -149,5 +162,6 @@ namespace WinFormsApp1
         private PictureBox pictureBox2;
         private PressKeyPictureBox pictureBox3;
         private AxWindowsMediaPlayer axWindowsMediaPlayer1; // 추가
+        private PictureBox devBtn;
     }
 }
