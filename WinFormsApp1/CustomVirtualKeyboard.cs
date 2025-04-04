@@ -14,6 +14,31 @@ namespace WinFormsApp1
     {
         private System.Windows.Forms.Timer backspaceTimer;
         private const int DeleteInterval = 200; // 연속 삭제 간격 (밀리초)
+        private bool isBackspacePressed = false;
+        private DateTime lastBackspacePressTime;
+        private const int TouchThreshold = 500; // 터치 감지 임계값 (밀리초)
+
+        [DllImport("user32.dll")]
+        private static extern bool GetTouchInputInfo(IntPtr hTouchInput, int cInputs, [In, Out] TOUCHINPUT[] pInputs, int cbSize);
+
+        [DllImport("user32.dll")]
+        private static extern bool RegisterTouchWindow(IntPtr hwnd, ulong ulFlags);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct TOUCHINPUT
+        {
+            public int x;
+            public int y;
+            public IntPtr hSource;
+            public int dwID;
+            public int dwFlags;
+            public int dwMask;
+            public int dwTime;
+            public IntPtr dwExtraInfo;
+            public int cxContact;
+            public int cyContact;
+        }
+
         protected override CreateParams CreateParams
         {
             get
@@ -178,6 +203,82 @@ namespace WinFormsApp1
 
         private IntPtr parentFormHandle;
 
+        protected override void WndProc(ref Message m)
+        {
+            const int WM_TOUCH = 0x0240;
+            if (m.Msg == WM_TOUCH)
+            {
+                HandleTouchMessage(m);
+            }
+            base.WndProc(ref m);
+        }
+
+        private void HandleTouchMessage(Message m)
+        {
+            const int TOUCHEVENTF_DOWN = 0x0001;
+            const int TOUCHEVENTF_UP = 0x0002;
+            const int TOUCHEVENTF_MOVE = 0x0004;
+
+            int inputCount = m.WParam.ToInt32();
+            TOUCHINPUT[] inputs = new TOUCHINPUT[inputCount];
+
+            if (GetTouchInputInfo(m.LParam, inputCount, inputs, Marshal.SizeOf(typeof(TOUCHINPUT))))
+            {
+                foreach (var input in inputs)
+                {
+                    if ((input.dwFlags & TOUCHEVENTF_DOWN) != 0)
+                    {
+                        HandleTouchDown(input);
+                    }
+                    else if ((input.dwFlags & TOUCHEVENTF_UP) != 0)
+                    {
+                        HandleTouchUp(input);
+                    }
+                }
+            }
+        }
+
+        private void HandleTouchDown(TOUCHINPUT input)
+        {
+            if (!isBackspacePressed)
+            {
+                isBackspacePressed = true;
+                lastBackspacePressTime = DateTime.Now;
+                StartBackspaceTimer();
+            }
+        }
+
+        private void HandleTouchUp(TOUCHINPUT input)
+        {
+            if (isBackspacePressed)
+            {
+                isBackspacePressed = false;
+                StopBackspaceTimer();
+            }
+        }
+
+        private void StartBackspaceTimer()
+        {
+            if (backspaceTimer == null)
+            {
+                backspaceTimer = new System.Windows.Forms.Timer();
+                backspaceTimer.Interval = DeleteInterval;
+                backspaceTimer.Tick += BackspaceTimer_Tick;
+            }
+            backspaceTimer.Start();
+        }
+
+        private void StopBackspaceTimer()
+        {
+            if (backspaceTimer != null)
+            {
+                backspaceTimer.Stop();
+                backspaceTimer.Tick -= BackspaceTimer_Tick;
+                backspaceTimer.Dispose();
+                backspaceTimer = null;
+            }
+        }
+
         public CustomVirtualKeyboard(IntPtr parentHandle)
         {
             parentFormHandle = parentHandle;
@@ -186,6 +287,17 @@ namespace WinFormsApp1
 
             if (!DesignMode)
             {
+                // 터치 입력 등록
+                RegisterTouchWindow(this.Handle, 0);
+
+                // Backspace 버튼 이벤트 연결
+                Control[] backspaceControls = this.Controls.Find("Backspace", true);
+                if (backspaceControls.Length > 0 && backspaceControls[0] is PictureBox backspaceButton)
+                {
+                    backspaceButton.MouseDown += Backspace_MouseDown;
+                    backspaceButton.MouseUp += Backspace_MouseUp;
+                }
+
                 // 폼의 초기 위치와 크기 설정
                 this.StartPosition = FormStartPosition.Manual;
                 this.Location = new Point(0, Screen.PrimaryScreen.WorkingArea.Height - this.Height);
@@ -316,7 +428,7 @@ namespace WinFormsApp1
 
         private void HandleKeyStr(string keyStr)
         {
-            Console.WriteLine($"Key pressed: {keyStr}");
+            //Console.WriteLine($"Key pressed: {keyStr}");
 
             // targetInputField가 포커스를 가지고 있는지 확인
             if (targetInputField != null && !targetInputField.Focused)
@@ -338,7 +450,8 @@ namespace WinFormsApp1
                 {
                     FinalizeBlock();
                     InsertTextAtCaret(keyStr);
-                } else
+                }
+                else
                 {
                     if (!KeyboardMsgWindow.IsShowing)
                     {
@@ -460,7 +573,7 @@ namespace WinFormsApp1
                 // 입력 필드가 NameInput인지 확인
                 bool isNameInput = targetInputField.Name == "NameInput";
 
-                Console.WriteLine($"isNameInput: {isNameInput}");
+                //Console.WriteLine($"isNameInput: {isNameInput}");
 
                 if (!isNameInput)
                 {
@@ -898,7 +1011,7 @@ namespace WinFormsApp1
                         //Console.WriteLine("keyPictureBox : " + keyPictureBox);
                         if (keyPictureBox != null)
                         {
-                            Console.WriteLine($"Found PictureBox: {controlName}");
+                            //Console.WriteLine($"Found PictureBox: {controlName}");
 
                             // Tag 값 업데이트
                             keyPictureBox.Tag = keys[i][j];
@@ -918,30 +1031,45 @@ namespace WinFormsApp1
         ///////////////////////////////// backspace 키 홀드 처리 /////////////////////////////////////////
         private void Backspace_MouseDown(object sender, MouseEventArgs e)
         {
-            // 한 번 삭제
-            HandleKeyStr("Backspace");
+            // 터치 이벤트인 경우에만 처리
+            if (e.Button == MouseButtons.Left)
+            {
+                // 한 번 삭제
+                HandleKeyStr("Backspace");
 
-            // 타이머 설정
-            backspaceTimer = new System.Windows.Forms.Timer();
-            backspaceTimer.Interval = DeleteInterval;
-            backspaceTimer.Tick += BackspaceTimer_Tick;
-            backspaceTimer.Start();
+                // 타이머 설정
+                if (backspaceTimer == null)
+                {
+                    backspaceTimer = new System.Windows.Forms.Timer();
+                    backspaceTimer.Interval = DeleteInterval;
+                    backspaceTimer.Tick += BackspaceTimer_Tick;
+                }
+                backspaceTimer.Start();
+            }
         }
 
         private void Backspace_MouseUp(object sender, MouseEventArgs e)
         {
-            if (backspaceTimer != null)
+            // 터치 이벤트인 경우에만 처리
+            if (e.Button == MouseButtons.Left)
             {
-                backspaceTimer.Stop();
-                backspaceTimer.Tick -= BackspaceTimer_Tick;
-                backspaceTimer.Dispose();
-                backspaceTimer = null;
+                if (backspaceTimer != null)
+                {
+                    backspaceTimer.Stop();
+                    backspaceTimer.Tick -= BackspaceTimer_Tick;
+                    backspaceTimer.Dispose();
+                    backspaceTimer = null;
+                }
             }
         }
 
         private void BackspaceTimer_Tick(object sender, EventArgs e)
         {
-            HandleKeyStr("Backspace");
+            // 타이머가 실행 중일 때만 삭제 실행
+            if (backspaceTimer != null && backspaceTimer.Enabled)
+            {
+                HandleKeyStr("Backspace");
+            }
         }
         ///////////////////////////////// backspace 키 홀드 처리 /////////////////////////////////////////
 
