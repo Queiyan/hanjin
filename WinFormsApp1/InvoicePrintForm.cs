@@ -166,13 +166,13 @@ namespace WinFormsApp1
                             IsMember, UserID, SenderName, SenderMobileNo, SenderPostCode, 
                             SenderAddressMain, SenderAddressDetail, SenderComment, RecvName, 
                             RecvMobileNo, RecvPostCode, RecvAddressMain, 
-                            RecvAddressDetail, GOD_NAM, TRN_FRE, ETC_FRE, EXT_FRE, 
+                            RecvAddressDetail, GOD_NAM, TRN_FRE, ETC_FRE, EXT_FRE, InvoiceTrackNo,
                             CreateDate, BoxSize, StackAreaCode, StackBoxNo, CreditNo
                         ) VALUES (
                             'N', @UserID, @SenderName, @SenderMobileNo, @SenderPostCode, 
                             @SenderAddressMain, @SenderAddressDetail, @SenderComment, @RecvName, 
                             @RecvMobileNo, @RecvPostCode, @RecvAddressMain, 
-                            @RecvAddressDetail, @GOD_NAM, @TRN_FRE, @ETC_FRE, @EXT_FRE, 
+                            @RecvAddressDetail, @GOD_NAM, @TRN_FRE, @ETC_FRE, @EXT_FRE, @InvoiceTrackNo
                             GETDATE(), @BoxSize, @StackAreaCode, @StackBoxNo, @CreditNo
                         );
                         SELECT SCOPE_IDENTITY();";
@@ -195,6 +195,7 @@ namespace WinFormsApp1
                         cmd.Parameters.AddWithValue("@TRN_FRE", 0);
                         cmd.Parameters.AddWithValue("@ETC_FRE", 0);
                         cmd.Parameters.AddWithValue("@EXT_FRE", 0);
+                        cmd.Parameters.AddWithValue("@InvoiceTrackNo", VoiceDataCtrl.WblNum);
                         cmd.Parameters.AddWithValue("@BoxSize", "M");
                         cmd.Parameters.AddWithValue("@StackAreaCode", stackAreaCode);
                         cmd.Parameters.AddWithValue("@StackBoxNo", 1);

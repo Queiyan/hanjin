@@ -138,6 +138,13 @@ public class ReservationResponse
     public string RcvrDtlAddr { get; set; }
 
     /// <summary>
+    /// 물품분류 250401 추가
+    /// </summary>
+    [JsonPropertyName("rcvrDtlAddr")]
+    public string ComodityNm { get; set; }
+    
+
+    /// <summary>
     /// 모든 필드를 기본값(주로 빈 문자열)으로 초기화합니다.
     /// </summary>
     public void ClearData()
@@ -164,5 +171,6 @@ public class ReservationResponse
         RcvrMobileNo = string.Empty;
         RcvrBaseAddr = string.Empty;
         RcvrDtlAddr = string.Empty;
+        ComodityNm = string.Empty;
     }
 }

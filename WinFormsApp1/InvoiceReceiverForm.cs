@@ -585,7 +585,7 @@ namespace WinFormsApp1
             if (mode == "sender")
             {
                 DataCtrl.SenderName = NameInput.Text;
-                DataCtrl.SenderPhoneNo = PhoneNoInput.Text;
+                DataCtrl.SenderPhoneNo = PhoneNoInput.Text.Replace("-", "");
                 DataCtrl.SenderAddress = AddressInput.Text;
                 DataCtrl.SenderAddress2 = Address2Input.Text;
                 DataCtrl.SenderAddress3 = Address3Input.Text;
@@ -593,7 +593,7 @@ namespace WinFormsApp1
             else if (mode == "receiver")
             {
                 DataCtrl.ReceiverName = NameInput.Text;
-                DataCtrl.ReceiverPhoneNo = PhoneNoInput.Text;
+                DataCtrl.ReceiverPhoneNo = PhoneNoInput.Text.Replace("-", "");
                 DataCtrl.ReceiverAddress = AddressInput.Text;
                 DataCtrl.ReceiverAddress2 = Address2Input.Text;
                 DataCtrl.ReceiverAddress3 = Address3Input.Text;
