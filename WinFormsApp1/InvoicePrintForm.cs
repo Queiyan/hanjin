@@ -172,7 +172,7 @@ namespace WinFormsApp1
                             'N', @UserID, @SenderName, @SenderMobileNo, @SenderPostCode, 
                             @SenderAddressMain, @SenderAddressDetail, @SenderComment, @RecvName, 
                             @RecvMobileNo, @RecvPostCode, @RecvAddressMain, 
-                            @RecvAddressDetail, @GOD_NAM, @TRN_FRE, @ETC_FRE, @EXT_FRE, @InvoiceTrackNo
+                            @RecvAddressDetail, @GOD_NAM, @TRN_FRE, @ETC_FRE, @EXT_FRE, @InvoiceTrackNo,
                             GETDATE(), @BoxSize, @StackAreaCode, @StackBoxNo, @CreditNo
                         );
                         SELECT SCOPE_IDENTITY();";
