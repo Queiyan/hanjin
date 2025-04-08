@@ -140,7 +140,7 @@ public class ReservationResponse
     /// <summary>
     /// 물품분류 250401 추가
     /// </summary>
-    [JsonPropertyName("rcvrDtlAddr")]
+    [JsonPropertyName("comodityNm")]
     public string ComodityNm { get; set; }
     
 
