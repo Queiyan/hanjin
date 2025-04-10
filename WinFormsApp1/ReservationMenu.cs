@@ -205,6 +205,9 @@ namespace WinFormsApp1
 
                 if (response != null && response.ResultCode == "OK")
                 {
+                    // ResponseDataSingleton 데이터 저장
+                    ResponseDataSingleton.Instance.CurrentReservation = response;
+
                     // 성공하면 다음 화면으로 이동
                     Go_Next(sender, e);
                 }

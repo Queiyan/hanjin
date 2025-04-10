@@ -154,6 +154,8 @@ namespace WinFormsApp1
 
         private async Task<string> SaveToLocalDb()
         {
+            var responseData = ResponseDataSingleton.Instance.CurrentReservation;
+
             try
             {
                 using (SqlConnection conn = new SqlConnection("Server=58.229.240.39,1433;Database=HANJIN_PARCEL_LOCKER;User Id=SMTUser;Password=SMTUserPass;TrustServerCertificate=True;Encrypt=True;TrustServerCertificate=True;"))
@@ -195,7 +197,14 @@ namespace WinFormsApp1
                         cmd.Parameters.AddWithValue("@TRN_FRE", 0);
                         cmd.Parameters.AddWithValue("@ETC_FRE", 0);
                         cmd.Parameters.AddWithValue("@EXT_FRE", 0);
-                        cmd.Parameters.AddWithValue("@InvoiceTrackNo", VoiceDataCtrl.WblNum);
+                        if(responseData.WblNo =="")
+                        {
+                            cmd.Parameters.AddWithValue("@InvoiceTrackNo", VoiceDataCtrl.WblNum);
+                        }
+                        else
+                        {
+                            cmd.Parameters.AddWithValue("@InvoiceTrackNo", responseData.WblNo);
+                        }
                         cmd.Parameters.AddWithValue("@BoxSize", "M");
                         cmd.Parameters.AddWithValue("@StackAreaCode", stackAreaCode);
                         cmd.Parameters.AddWithValue("@StackBoxNo", 1);

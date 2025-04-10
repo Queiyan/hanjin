@@ -35,7 +35,14 @@ namespace WinFormsApp1
         public static double BoxHeight { get; set; } = 0.0;
         public static double BoxVolume { get; set; } = 0.0;
 
-        public static int Cost { get; set; } = 0;
+        // 한진 Box Type
+        public static string BoxType { get; set; } = string.Empty;
+
+        // 한진 TRN(기본운임비용)
+        public static int TRN { get; set; } = 0;
+
+        // 한진 ETC(추가운임비용)
+        public static int ETC { get; set; } = 0;
 
         public static void ClearAll()
         {
@@ -57,10 +64,15 @@ namespace WinFormsApp1
             ProductPriceInput = string.Empty;
             RequestInputField = string.Empty;
 
+            BoxType = string.Empty;
+
             BoxWidth = 0.0;
             BoxDepth = 0.0;
             BoxHeight = 0.0;
             BoxVolume = 0.0;
+
+            TRN = 0;
+            ETC = 0;
         }
     }
 }
