@@ -38,7 +38,7 @@ namespace WinFormsApp1
         // 키오스크 식별번호 추후 ini파일로 설정
         private string stackAreaCode = "NHJ063800001";
 
-        
+
 
         public InvoicePrintForm(int cos)
         {
@@ -113,7 +113,7 @@ namespace WinFormsApp1
                 // 1. 라커 예약 처리
                 await ProcessLockerReservation();
 
-                
+
             }
             catch (Exception ex)
             {
@@ -154,8 +154,6 @@ namespace WinFormsApp1
 
         private async Task<string> SaveToLocalDb()
         {
-            var responseData = ResponseDataSingleton.Instance.CurrentReservation;
-
             try
             {
                 using (SqlConnection conn = new SqlConnection("Server=58.229.240.39,1433;Database=HANJIN_PARCEL_LOCKER;User Id=SMTUser;Password=SMTUserPass;TrustServerCertificate=True;Encrypt=True;TrustServerCertificate=True;"))
@@ -165,13 +163,13 @@ namespace WinFormsApp1
 
                     string query = @"
                         INSERT INTO tblParcelSendInfo (
-                            IsMember, UserID, SenderName, SenderMobileNo, SenderPostCode, 
+                            IsMember, UserID, Sequence, SenderName, SenderMobileNo, SenderPostCode, 
                             SenderAddressMain, SenderAddressDetail, SenderComment, RecvName, 
                             RecvMobileNo, RecvPostCode, RecvAddressMain, 
                             RecvAddressDetail, GOD_NAM, TRN_FRE, ETC_FRE, EXT_FRE, InvoiceTrackNo,
                             CreateDate, BoxSize, StackAreaCode, StackBoxNo, CreditNo
                         ) VALUES (
-                            'N', @UserID, @SenderName, @SenderMobileNo, @SenderPostCode, 
+                            'N', @UserID, @Sequence, @SenderName, @SenderMobileNo, @SenderPostCode, 
                             @SenderAddressMain, @SenderAddressDetail, @SenderComment, @RecvName, 
                             @RecvMobileNo, @RecvPostCode, @RecvAddressMain, 
                             @RecvAddressDetail, @GOD_NAM, @TRN_FRE, @ETC_FRE, @EXT_FRE, @InvoiceTrackNo,
@@ -183,6 +181,7 @@ namespace WinFormsApp1
                     {
                         cmd.Parameters.AddWithValue("@UserID", DataCtrl.SenderPhoneNo);
                         cmd.Parameters.AddWithValue("@SenderName", DataCtrl.SenderName);
+                        
                         cmd.Parameters.AddWithValue("@SenderMobileNo", DataCtrl.SenderPhoneNo);
                         cmd.Parameters.AddWithValue("@SenderPostCode", DataCtrl.SenderAddress);
                         cmd.Parameters.AddWithValue("@SenderAddressMain", DataCtrl.SenderAddress2);
@@ -194,18 +193,25 @@ namespace WinFormsApp1
                         cmd.Parameters.AddWithValue("@RecvAddressMain", DataCtrl.ReceiverAddress2);
                         cmd.Parameters.AddWithValue("@RecvAddressDetail", DataCtrl.ReceiverAddress3);
                         cmd.Parameters.AddWithValue("@GOD_NAM", DataCtrl.ProductCategory);
-                        cmd.Parameters.AddWithValue("@TRN_FRE", 0);
-                        cmd.Parameters.AddWithValue("@ETC_FRE", 0);
+                        cmd.Parameters.AddWithValue("@TRN_FRE", DataCtrl.TRN);
+                        cmd.Parameters.AddWithValue("@ETC_FRE", DataCtrl.ETC);
                         cmd.Parameters.AddWithValue("@EXT_FRE", 0);
-                        if(responseData.WblNo =="")
+
+                        // 예약 데이터가 있는 경우에만 responseData를 사용
+                        string invoiceTrackNo = VoiceDataCtrl.WblNum;
+
+                        if (ResponseDataSingleton.Instance?.CurrentReservation != null)
                         {
-                            cmd.Parameters.AddWithValue("@InvoiceTrackNo", VoiceDataCtrl.WblNum);
+                            var responseData = ResponseDataSingleton.Instance.CurrentReservation;
+                            if (!string.IsNullOrEmpty(responseData.WblNo))
+                            {
+                                cmd.Parameters.AddWithValue("@Sequence", responseData.RsvNo);
+                                invoiceTrackNo = responseData.WblNo;
+                            }
                         }
-                        else
-                        {
-                            cmd.Parameters.AddWithValue("@InvoiceTrackNo", responseData.WblNo);
-                        }
-                        cmd.Parameters.AddWithValue("@BoxSize", "M");
+                        cmd.Parameters.AddWithValue("@InvoiceTrackNo", invoiceTrackNo);
+
+                        cmd.Parameters.AddWithValue("@BoxSize", DataCtrl.BoxType);
                         cmd.Parameters.AddWithValue("@StackAreaCode", stackAreaCode);
                         cmd.Parameters.AddWithValue("@StackBoxNo", 1);
                         cmd.Parameters.AddWithValue("@CreditNo", "5469086");

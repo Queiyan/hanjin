@@ -165,18 +165,26 @@ namespace WinFormsApp1
             if (boxLength <= 100)
             {
                 cos = 3000;
+                DataCtrl.TRN = 3000;
+                DataCtrl.BoxType = "B";
             }
             else if (boxLength <= 120)
             {
                 cos = 3500;
+                DataCtrl.TRN = 3500;
+                DataCtrl.BoxType = "C";
             }
             else if (boxLength <= 140)
             {
                 cos = 4500;
+                DataCtrl.TRN = 4500;
+                DataCtrl.BoxType = "D";
             }
             else if (boxLength <= 160)
             {
                 cos = 5500;
+                DataCtrl.TRN = 5500;
+                DataCtrl.BoxType = "E";
             }
             else
             {

@@ -343,12 +343,14 @@ namespace WinFormsApp1
                 // 제주권역 추가요금
                 if (domRgn == "7")
                 {
+                    DataCtrl.ETC = 3000;
                     cost += 3000; // 추가요금 정해지면 변경
                 }
 
                 // 도서지역 추가요금
                 if (domRgn == "9")
                 {
+                    DataCtrl.ETC = 5000;
                     cost += 5000; // 추가요금 정해지면 변경
                 }
 
