@@ -190,7 +190,7 @@ namespace WinFormsApp1
 
                 numpad.NextKeyPressed += Numpad_NextKeyPressed;
                 numpad.Show();
-                Task.Delay(300).ContinueWith(t => keyboard.Enabled = false, TaskScheduler.FromCurrentSynchronizationContext());
+                Task.Delay(550).ContinueWith(t => keyboard.Enabled = false, TaskScheduler.FromCurrentSynchronizationContext());
             }
             numpad.SetTargetInputField(ProductPriceInput); // 키보드의 대상 필드도 설정
             ProductPriceInput.Focus();
