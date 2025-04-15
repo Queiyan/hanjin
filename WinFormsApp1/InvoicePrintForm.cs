@@ -181,7 +181,6 @@ namespace WinFormsApp1
                     {
                         cmd.Parameters.AddWithValue("@UserID", DataCtrl.SenderPhoneNo);
                         cmd.Parameters.AddWithValue("@SenderName", DataCtrl.SenderName);
-                        
                         cmd.Parameters.AddWithValue("@SenderMobileNo", DataCtrl.SenderPhoneNo);
                         cmd.Parameters.AddWithValue("@SenderPostCode", DataCtrl.SenderAddress);
                         cmd.Parameters.AddWithValue("@SenderAddressMain", DataCtrl.SenderAddress2);
@@ -199,18 +198,20 @@ namespace WinFormsApp1
 
                         // 예약 데이터가 있는 경우에만 responseData를 사용
                         string invoiceTrackNo = VoiceDataCtrl.WblNum;
+                        string sequence = null;
 
                         if (ResponseDataSingleton.Instance?.CurrentReservation != null)
                         {
                             var responseData = ResponseDataSingleton.Instance.CurrentReservation;
                             if (!string.IsNullOrEmpty(responseData.WblNo))
                             {
-                                cmd.Parameters.AddWithValue("@Sequence", responseData.RsvNo);
+                                sequence = responseData.RsvNo;
                                 invoiceTrackNo = responseData.WblNo;
                             }
                         }
-                        cmd.Parameters.AddWithValue("@InvoiceTrackNo", invoiceTrackNo);
 
+                        cmd.Parameters.AddWithValue("@Sequence", (object)sequence ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@InvoiceTrackNo", invoiceTrackNo);
                         cmd.Parameters.AddWithValue("@BoxSize", DataCtrl.BoxType);
                         cmd.Parameters.AddWithValue("@StackAreaCode", stackAreaCode);
                         cmd.Parameters.AddWithValue("@StackBoxNo", 1);
