@@ -9,6 +9,7 @@ import cv2
 from queue import Queue
 import copy
 from scipy import ndimage
+from scipy.ndimage import median_filter
 
 # 포트 찾기 함수
 def find_tof_sensor_port():
@@ -94,7 +95,7 @@ def initialize_tof_sensor():
                 update_config(find_port)  # config.ini 업데이트
                 
                 # 잠시 대기 후 재시도
-                time.sleep(1)
+                time.sleep(0.5)
             else:
                 # print("TOF 센서를 찾을 수 없습니다. 다시 시도합니다...")
                 exit()
@@ -112,30 +113,33 @@ hex_unit = bytearray(b'AT+UNIT=9\r')
 ser_tof.write(hex_unit)
 data_scan = bytearray(b'AT+DISP=3\r')
 ser_tof.write(data_scan)
-time.sleep(0.01)
+time.sleep(0.5)
 
 # 높이 계산
 def calculate_height(sensor_value):
-    # 범위 확인
-    if sensor_value < 900 or sensor_value >= 1430:
+    if sensor_value < 680 or sensor_value > 960:
         return "Error: 상자를 측정할 수 없습니다."
+    for i in range(len(reference_table) - 1):
+        x1, y1 = reference_table[i]["tof"], reference_table[i]["height_cm"]
+        x2, y2 = reference_table[i + 1]["tof"], reference_table[i + 1]["height_cm"]
+        if x2 <= sensor_value <= x1:
+            height = y1 + (y2 - y1) * (x1 - sensor_value) / (x1 - x2)
+            return round(height, 1)
+    return "Error: 상자 높이를 계산할 수 없습니다."
 
-    # 기준점 설정 (1150부터 650까지 10cm부터 60cm 사이 선형 변화)
-    max_value = 1400
-    min_value = 1000
-    max_height = 5
-    min_height = 60
-
-    # 선형 보간 계산
-    if sensor_value:
-        height = max_height + (min_height - max_height) * (max_value - sensor_value) / (max_value - min_value)
-        return round(height, 1)
-    else:
-        return "Error: 상자 높이를 계산할 수 없습니다."
+# 픽셀당 cm 보간 함수
+def get_pixel_to_cm_ratio(sensor_value):
+    for i in range(len(reference_table) - 1):
+        x1, r1 = reference_table[i]["tof"], reference_table[i]["pixel_ratio"]
+        x2, r2 = reference_table[i + 1]["tof"], reference_table[i + 1]["pixel_ratio"]
+        if x2 <= sensor_value <= x1:
+            ratio = r1 + (r2 - r1) * (x1 - sensor_value) / (x1 - x2)
+            return ratio * 0.1  # cm로 변환
+    return None
 
     
 # 필터링 함수
-def filter_tof_data(data, invalid_value=2295, floor_value=1410):
+def filter_tof_data(data, invalid_value=2295, floor_value=970):
     """TOF 데이터를 필터링하여 유효한 값만 반환."""
     return np.where(
         # 2295 (측정 불가) 값, 바닥 값보다 낮은거 제외
@@ -161,27 +165,27 @@ def calculate_object_size(data):
 
     
 # 노이즈 제거 함수
-def remove_noise(data, min_size=20):
-    """
-    작은 노이즈를 제거하여 상자만 남기는 함수.
-    data: 입력 데이터 배열
-    min_size: 노이즈로 간주할 픽셀의 최소 크기
-    """
-    # 8-방향 연결로 레이블링
+def remove_noise_centered(data, min_size=20):
     labeled_array, num_features = ndimage.label(data > 0)
-    
-    # 각 레이블의 픽셀 크기 계산
-    sizes = np.bincount(labeled_array.flatten())
-    
-    # 작은 레이블(노이즈)에 해당하는 마스크
-    noise_mask = sizes < min_size
-    noise_mask[0] = False  # 배경(레이블 0)은 제외
-    
-    # 노이즈 제거
-    noise_labels = np.where(noise_mask)[0]
-    clean_data = np.where(np.isin(labeled_array, noise_labels), 0, data)
-    
-    return clean_data
+    sizes = ndimage.sum(data > 0, labeled_array, range(num_features + 1))
+    center = np.array(data.shape) // 2
+    center_label = labeled_array[center[0], center[1]]
+
+    keep_labels = {center_label} | set(np.where(sizes >= min_size)[0])
+    return np.where(np.isin(labeled_array, list(keep_labels)), data, 0)
+
+def keep_largest_centered_object(data):
+    labeled_array, num_features = ndimage.label(data > 0)
+    sizes = ndimage.sum(data > 0, labeled_array, range(num_features + 1))
+    center = np.array(data.shape) // 2
+    center_label = labeled_array[center[0], center[1]]
+
+    if center_label == 0:
+        return np.zeros_like(data)  # 중심이 아무 객체도 아니면 그냥 무시
+
+    return np.where(labeled_array == center_label, data, 0)
+
+
 
 def calculate_box_angle_and_size(data):
     """
@@ -242,46 +246,44 @@ if ser_tof:
 
     # print(mtx_tof.qsize())
     output = copy.deepcopy(mtx_tof.queue)
-    
+    stack = np.stack(output)
     
     if not output:
-        print("Error: No data available in the queue.")
+        # print("Error: No data available in the queue.")
         exit()
 
 
 # 데이터 필터링
-mean = np.stack(output).mean(axis=0)
+# 중앙값 + 평균 혼합
+mean = np.median(stack, axis=0) * 0.4 + np.mean(stack, axis=0) * 0.6
 filtered_mean = filter_tof_data(mean)
 
-# 위치를 기준으로 영역 제거
-#  +-------------------------+
-#  |#########################|
-#  |###|                 |###|
-#  |###|                 |###|
-#  |###|                 |###|
-#  |###|                 |###|
-#  |###|                 |###|
-#  |###|                 |###| 
-#  |#########################|
-#  |#########################|
-#  +-------------------------+
+# 튀는 점 제거: 평활화 (median filter)
+from scipy.ndimage import median_filter
+mean = median_filter(mean, size=3)
+
 # 비율 기반으로 제거 영역 설정
-top_margin = int(100 * 0.1) # 상단 10%
-bottom_margin = int(100 * 0.3)  # 하단 30%
-left_margin = int(100 * 0.26)   # 좌 26% 
-right_margin = int(100 * 0.1) # 우 10%
+# top_margin = int(100 * 0.1) # 상단 10%
+bottom_margin = int(100 * 0.21)  # 하단 27%
+left_margin = int(100 * 0.13)   # 좌 15% 
+#right_margin = int(100 * 0.1) # 우 10%
 
 # 상단 영역 제거
-filtered_mean[:top_margin, :] = 0
+#filtered_mean[:top_margin, :] = 0
 # 하단 영역 제거
 filtered_mean[-bottom_margin:, :] = 0
 # 좌측 영역 제거
 filtered_mean[:, :left_margin] = 0
 # 우측 영역 제거
-filtered_mean[:, -right_margin:] = 0
+#filtered_mean[:, -right_margin:] = 0
 
 # 노이즈 제거
-cleaned_data = remove_noise(filtered_mean)
+# Step 1: 필터링된 데이터 기준 중앙 근처 객체만 남기고
+centered_filtered = remove_noise_centered(filtered_mean, min_size=10)
+
+# Step 2: 그중 가장 큰 덩어리만 남긴다
+cleaned_data = keep_largest_centered_object(centered_filtered)
+
 object_width, object_length = calculate_object_size(cleaned_data)
 
 # 결과 출력
@@ -292,33 +294,20 @@ object_width, object_length = calculate_object_size(cleaned_data)
 average_tof = np.mean(cleaned_data[cleaned_data > 0])
 # print(f"tof 센서 평균 값 : {average_tof}")
 
-# 기준 TOF 값과 대응하는 픽셀당 mm 비율
-# 실제 높이cm :   10,   12,   18,   23,   28,   31,   35,   41,   47,   52,  57,  62,  65
-# tof_reference = [1355, 1333, 1300, 1265, 1225, 1190, 1180, 1135, 1080, 1045, 995, 950, 930]
+# TOF 기준점 + 높이 + mm/픽셀 비율을 하나로 통합
+reference_table = [
+    {"tof": 955, "height_cm": 5, "pixel_ratio": 200 / 16},
+    {"tof": 910, "height_cm": 10, "pixel_ratio": 200 / 21},
+    {"tof": 870, "height_cm": 15, "pixel_ratio": 200 / 22},
+    {"tof": 835, "height_cm": 20, "pixel_ratio": 200 / 25},
+    {"tof": 800, "height_cm": 25, "pixel_ratio": 200 / 26},
+    {"tof": 750, "height_cm": 30, "pixel_ratio": 200 / 28},
+    {"tof": 710, "height_cm": 35, "pixel_ratio": 200 / 30},
+    {"tof": 690, "height_cm": 40, "pixel_ratio": 200 / 33}
+]
 
-# 실제 높이cm :   5,    10,   15,   20,   25,   30,   35,   40,   45,   50,   55,   60
-tof_reference = [1400, 1365, 1330, 1300, 1266, 1230, 1190, 1150, 1100, 1080, 1020, 990]
 
-
-# mm / px
-pixel_ratios = [200 / 18, # 1400
-                200 / 20, # 1365
-                200 / 22, # 1330
-                200 / 24, # 1300
-                200 / 26, # 1266
-                200 / 28, # 1230
-                200 / 30, # 1190
-                200 / 34, # 1150
-                200 / 37, # 1100
-                200 / 40, # 1080
-                200 / 47, # 1020
-                200 / 55] # 990
-
-# 가장 근접한 TOF 값 찾기   
-closest_index = np.argmin([abs(average_tof - ref) for ref in tof_reference])
-
-# 픽셀당 mm 비율 설정
-pixel_to_cm_ratio = pixel_ratios[closest_index] * 0.1
+pixel_to_cm_ratio = get_pixel_to_cm_ratio(average_tof)
 
 # 박스의 기울기 및 크기 계산
 box_angle, min_area_width, min_area_length = calculate_box_angle_and_size(cleaned_data)
@@ -339,7 +328,7 @@ angle = round(box_angle, 1)
 # import matplotlib.pyplot as plt
 # plt.imshow(cleaned_data, cmap='hot', interpolation='nearest')
 # plt.colorbar()
-# plt.show()
+# plt.show()    
 
 import json
  
