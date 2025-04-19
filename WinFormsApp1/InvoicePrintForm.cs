@@ -289,7 +289,7 @@ namespace WinFormsApp1
                             result.Equals("success", StringComparison.OrdinalIgnoreCase) ||
                             result.Equals("Success", StringComparison.OrdinalIgnoreCase) ||
                             result.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
-                        {c
+                        {
                             return true;
                         }
 
