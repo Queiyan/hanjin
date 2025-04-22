@@ -264,7 +264,7 @@ namespace WinFormsApp1
         // 개발자 버튼
         private void DevBtn_Click(object sender, EventArgs e)
         {
-            ReservNumInput.Text = "911518834";
+            ReservNumInput.Text = "";
         }
     }
 }

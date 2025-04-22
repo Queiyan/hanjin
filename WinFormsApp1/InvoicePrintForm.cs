@@ -56,16 +56,17 @@ namespace WinFormsApp1
                 this.Opacity = 1; // 투명도 복원
             };
 
-            Task.Delay(1000).Wait();
-            HanjinAPI();
-
             // 30초 후에 Go_Home 메서드 호출을 위한 타이머 설정
             autoCloseTimer = new System.Windows.Forms.Timer();
             autoCloseTimer.Interval = 30000; // 30초 (30000 밀리초)
             autoCloseTimer.Tick += AutoCloseTimer_Tick;
             autoCloseTimer.Start();
 
+            // 카운트다운 타이머 초기화
+            InitializeCountdownTimer();
 
+            // API 호출 시작
+            _ = HanjinAPI();
         }
         private void InitializeCountdownTimer()
         {
@@ -106,27 +107,36 @@ namespace WinFormsApp1
             return res;
         }
 
-        private async void HanjinAPI()
+        private async Task HanjinAPI()
         {
             try
             {
                 // 1. 라커 예약 처리
-                await ProcessLockerReservation();
+                bool reservationSuccess = await ProcessLockerReservation();
 
-
+                if (reservationSuccess)
+                {
+                    await ShowPrinterWindow();
+                }
+                else
+                {
+                    throw new Exception("라커 예약에 실패했습니다.\n잠시 후 다시 시도해 주세요.");
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                new MsgWindow(ex.Message).Show();
+                string userMessage = "죄송합니다. 시스템 오류가 발생했습니다.\n" +
+                                   "다음과 같은 문제가 발생했습니다:\n" +
+                                   $"{ex.Message}\n\n" +
+                                   "잠시 후 다시 시도해 주시기 바랍니다.\n" +
+                                   "문제가 지속되면 관리자에게 문의해 주세요.";
+                new MsgWindow(userMessage).Show();
             }
-
-            ShowPrinterWindow();
-            InitializeCountdownTimer();
         }
 
         // 라커 예약 처리를 위한 새로운 메서드들
-        private async Task ProcessLockerReservation()
+        private async Task<bool> ProcessLockerReservation()
         {
             try
             {
@@ -141,14 +151,16 @@ namespace WinFormsApp1
 
                 if (!success)
                 {
-                    throw new Exception("예약 API가 실패 응답을 반환했습니다.");
+                    throw new Exception("라커 예약이 실패했습니다.\n일시적인 시스템 오류일 수 있습니다.");
                 }
+
+                return success;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"예약 처리 상세 오류: {ex.Message}");
                 Console.WriteLine($"스택 트레이스: {ex.StackTrace}");
-                throw new Exception($"예약 처리 실패: {ex.Message}");
+                throw new Exception($"라커 예약 중 오류가 발생했습니다.\n{ex.Message}");
             }
         }
 
@@ -307,7 +319,7 @@ namespace WinFormsApp1
             }
         }
 
-        public void ShowPrinterWindow()
+        private async Task ShowPrinterWindow()
         {
             // device.json 경로 설정
             string deviceJsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appassets", "device.json");
@@ -394,7 +406,7 @@ namespace WinFormsApp1
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"프린터 통신 중 오류가 발생했습니다: {ex.Message}");
+                new MsgWindow($"프린터 통신 중 오류가 발생했습니다.\n{ex.Message}").Show();
             }
             finally
             {
@@ -405,7 +417,7 @@ namespace WinFormsApp1
             }
 
             // 추가 동작 수행
-            Task.Delay(2000).Wait();
+            await Task.Delay(2000);
         }
 
 

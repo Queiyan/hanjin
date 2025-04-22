@@ -127,6 +127,13 @@ namespace WinFormsApp1
             InitializeComponent();
             cost = cos;
 
+            // 결제 버튼 비활성화 (버튼이 존재하는 경우에만)
+            if (Controls.Find("btnCardAuth", true).Length > 0)
+            {
+                var btnCardAuth = Controls.Find("btnCardAuth", true)[0];
+                btnCardAuth.Enabled = false;
+            }
+
             HanjinPrintAPI();
 
             this.Show();
@@ -317,7 +324,7 @@ namespace WinFormsApp1
                     ptnSrt = jsonResponse["ptn_srt"]?.ToString() ?? "";
                     srtNam = jsonResponse["srt_nam"]?.ToString() ?? "";
                     wblNum = jsonResponse["wbl_num"]?.ToString() ?? "";
-                    
+
 
                     // VoiceDataCtrl에 데이터 저장
                     VoiceDataCtrl.SaveHanjinApiResponse(
@@ -356,6 +363,13 @@ namespace WinFormsApp1
 
                 // 요금 문자 포맷팅, 화면에 표시
                 CostValue.Text = cost.ToString("N0");
+
+                // API 호출이 완료된 후 결제 버튼 활성화 (버튼이 존재하는 경우에만)
+                if (Controls.Find("btnCardAuth", true).Length > 0)
+                {
+                    var btnCardAuth = Controls.Find("btnCardAuth", true)[0];
+                    btnCardAuth.Enabled = true;
+                }
             }
         }
         private void PaymentForm_Load(object sender, EventArgs e)
