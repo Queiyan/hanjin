@@ -49,7 +49,7 @@ namespace WinFormsApp1
         // 60초 뒤 홈 화면으로 이동하는 타이머 초기화
         private void InitializeInactivityTimer()
         {
-            inactivityTimer = new System.Timers.Timer(30000); // 30초
+            inactivityTimer = new System.Timers.Timer(60000); // 60초로 통일
             inactivityTimer.Elapsed += InactivityTimer_Elapsed;
             inactivityTimer.AutoReset = false;
             inactivityTimer.Start();
@@ -60,7 +60,16 @@ namespace WinFormsApp1
         {
             this.Invoke((MethodInvoker)delegate
             {
-                DetailedAddressForm_FormClosed(this, EventArgs.Empty);
+                if (this.IsHandleCreated && !this.IsDisposed)
+                {
+                    if (keyboard != null && !keyboard.IsDisposed)
+                    {
+                        keyboard.Close();
+                        keyboard.Dispose();
+                    }
+                    this.DialogResult = DialogResult.Cancel;
+                    this.Close();
+                }
             });
         }
 
@@ -207,6 +216,21 @@ namespace WinFormsApp1
         private void pictureBox4_Click(object sender, EventArgs e)
         {
 
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+            if (inactivityTimer != null)
+            {
+                inactivityTimer.Stop();
+                inactivityTimer.Dispose();
+            }
+            if (keyboard != null && !keyboard.IsDisposed)
+            {
+                keyboard.Close();
+                keyboard.Dispose();
+            }
         }
     }
 }

@@ -211,6 +211,10 @@ namespace WinFormsApp1
                     // 성공하면 다음 화면으로 이동
                     Go_Next(sender, e);
                 }
+                else if (response != null && response.ResultCode == "-500")
+                {
+                    new MsgWindow("서버와의 연동이 실패 했습니다.").Show();
+                }
                 else
                 {
                     new MsgWindow("예약 정보를 찾을 수 없습니다").Show();

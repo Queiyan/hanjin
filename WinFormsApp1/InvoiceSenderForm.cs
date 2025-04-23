@@ -140,7 +140,7 @@ namespace WinFormsApp1
             {
                 keyboard.Visible = true;
             }
-            
+
             Task.Delay(300).ContinueWith(t => numpad.Close(), TaskScheduler.FromCurrentSynchronizationContext());
         }
 
@@ -149,7 +149,7 @@ namespace WinFormsApp1
             if (numpad == null || numpad.IsDisposed)
             {
                 numpad = new NumpadForm();
-                
+
                 numpad.NextKeyPressed += numPad_NextKeyPressed;
                 numpad.Show();
                 Task.Delay(300).ContinueWith(t =>
@@ -403,7 +403,8 @@ namespace WinFormsApp1
                 }
                 AddressSearch_Click(sender, e);
                 numpad.Close();
-            } else
+            }
+            else
             {
                 Go_Next(sender, e);
                 numpad.Close();
@@ -602,7 +603,7 @@ namespace WinFormsApp1
             }
         }
 
-        
+
 
         private void VoiceForm_Load(object sender, EventArgs e)
         {
@@ -632,7 +633,7 @@ namespace WinFormsApp1
                             if (!richTextBox.Name.Equals("PhoneNoInput"))
                             {
                                 //richTextBox.Click += RichTextBox_Click;
-                               
+
                             }
 
                         }
@@ -708,7 +709,7 @@ namespace WinFormsApp1
                         // 상세 주소 입력
                         HandleKeyInputAddress3(detailedAddress);
 
-                        if(AddressInput.Text != ""|| AddressInput.Text != null)
+                        if (AddressInput.Text != "" || AddressInput.Text != null)
                         {
                             //numpad.Close();
                         }
