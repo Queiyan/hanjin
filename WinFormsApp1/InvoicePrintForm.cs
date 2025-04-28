@@ -31,7 +31,7 @@ namespace WinFormsApp1
         private int remainingTime = 30; // 30초 카운트다운
 
 
-        private string coastFormat;
+        
 
         string wblNumDashFormat = VoiceDataCtrl.WblNum.Insert(4, "-").Insert(9, "-");
 
@@ -43,19 +43,73 @@ namespace WinFormsApp1
         /// </summary>
         /// 
         // 송장 권역구분
-        string dom_rgn;
+        private string dom_rgn;
 
-        string ReceiverName;
+        // 송장 수령인 이름 마스킹
+        private string ReceiverName;
 
-        /// <summary>
-        /// ///////////////////////////////////////////////////////
-        /// </summary>
-        /// <param name="cos"></param>
+        // 송장 택배요금
+        private string coastFormat;
+
+        // 송장 송하인 전화번호 마스킹
+        private string formattedSenderPhone;
+
+        // 송장 수령인 전화번호 마스킹
+        private string formattedReceiverPhone;
+
+        ///////////////////////////////////////////////////////////
+
         public InvoicePrintForm(int cos)
         {
             this.Opacity = 0;
 
             InitializeComponent();
+
+            // 수령자 이름의 두 번째 문자를 '*'로 변경
+            if (DataCtrl.ReceiverName.Length >= 2)
+            {
+                ReceiverName = DataCtrl.ReceiverName.Substring(0, 1) + "*" + DataCtrl.ReceiverName.Substring(2);
+            }
+            else
+            {
+                ReceiverName = DataCtrl.ReceiverName;
+            }
+
+            // 전화번호 형식 변경
+            formattedSenderPhone = FormatPhoneNumber(DataCtrl.SenderPhoneNo);
+            formattedReceiverPhone = FormatPhoneNumber(DataCtrl.ReceiverPhoneNo, true);
+
+            // 권역 구분 파싱
+            switch (VoiceDataCtrl.DomRgn)
+            {
+                case "1":
+                    dom_rgn = "수도권";
+                    break;
+                case "2":
+                    dom_rgn = "강원권역";
+                    break;
+                case "3":
+                    dom_rgn = "충청권역";
+                    break;
+                case "4":
+                    dom_rgn = "경남권역";
+                    break;
+                case "5":
+                    dom_rgn = "경북권역";
+                    break;
+                case "6":
+                    dom_rgn = "호남권역";
+                    break;
+                case "7":
+                    dom_rgn = "제주권역";
+                    break;
+                case "9":
+                    dom_rgn = "도서지역";
+                    break;
+                default:
+                    dom_rgn = "";
+                    break;
+            }
 
             coastFormat = cos.ToString("N0");
 
@@ -347,37 +401,6 @@ namespace WinFormsApp1
 
             
 
-            switch (VoiceDataCtrl.DomRgn)
-            {
-                case "1":
-                    dom_rgn = "수도권";
-                    break;
-                case "2":
-                    dom_rgn = "강원권역";
-                    break;
-                case "3":
-                    dom_rgn = "충청권역";
-                    break;
-                case "4":
-                    dom_rgn = "경남권역";
-                    break;
-                case "5":
-                    dom_rgn = "경북권역";
-                    break;
-                case "6":
-                    dom_rgn = "호남권역";
-                    break;
-                case "7":
-                    dom_rgn = "제주권역";
-                    break;
-                case "9":
-                    dom_rgn = "도서지역";
-                    break;
-
-                default:
-                    break;
-            }
-
             try
             {
                 serialPort.Open();
@@ -414,8 +437,8 @@ namespace WinFormsApp1
     ^FO620,50^A0R,20,20^FD발지:{VoiceDataCtrl.STmlCod} {VoiceDataCtrl.STmlNam}^FS
 
     ; 수령인 정보
-    ^FO570,450^A0R,30,30^FD{DataCtrl.ReceiverPhoneNo}^FS
-    ^FO570,50^A0R,30,30^FD{DataCtrl.ReceiverName}^FS
+    ^FO570,450^A0R,30,30^FD{formattedReceiverPhone}^FS
+    ^FO570,50^A0R,30,30^FD{ReceiverName}^FS
     ^FO535,50^A0R,25,25rcmd^FD{DataCtrl.ReceiverAddress2} {DataCtrl.ReceiverAddress3}^FS
     ^FO480,50^A0R,40,40^FD{VoiceDataCtrl.PrtAdd} {DataCtrl.ReceiverAddress3}^FS
 
@@ -429,7 +452,7 @@ namespace WinFormsApp1
     ^FO465,740^A0R,35,35^FD선불 {coastFormat}원^FS
 
     ; 송하인 정보
-    ^FO420,450^A0R,25,25^FD{DataCtrl.SenderPhoneNo}^FS
+    ^FO420,450^A0R,25,25^FD{formattedSenderPhone}^FS
     ^FO425,50^A0R,20,20^FD{DataCtrl.SenderName}^FS
     ^FO400,50^A0R,20,20^FD{DataCtrl.SenderAddress2} ****^FS
 
@@ -466,6 +489,51 @@ namespace WinFormsApp1
             await Task.Delay(2000);
         }
 
+        private string FormatPhoneNumber(string phoneNumber, bool isReceiver = false)
+        {
+            if (string.IsNullOrEmpty(phoneNumber)) return "";
+
+            // 숫자만 추출
+            string numbers = new string(phoneNumber.Where(char.IsDigit).ToArray());
+
+            string formattedNumber;
+            // 전화번호 길이에 따라 다른 형식 적용
+            if (numbers.Length == 11) // 010-1234-5678
+            {
+                formattedNumber = numbers.Insert(3, "-").Insert(8, "-");
+            }
+            else if (numbers.Length == 10) // 02-1234-5678 또는 031-123-4567
+            {
+                if (numbers.StartsWith("02"))
+                {
+                    formattedNumber = numbers.Insert(2, "-").Insert(7, "-");
+                }
+                else
+                {
+                    formattedNumber = numbers.Insert(3, "-").Insert(7, "-");
+                }
+            }
+            else if (numbers.Length == 9) // 02-123-4567
+            {
+                formattedNumber = numbers.Insert(2, "-").Insert(6, "-");
+            }
+            else
+            {
+                return phoneNumber; // 형식에 맞지 않는 경우 원본 반환
+            }
+
+            // 수신자 전화번호인 경우 마지막 4자리를 '*'로 마스킹
+            if (isReceiver)
+            {
+                int lastDashIndex = formattedNumber.LastIndexOf('-');
+                if (lastDashIndex != -1)
+                {
+                    formattedNumber = formattedNumber.Substring(0, lastDashIndex + 1) + "****";
+                }
+            }
+
+            return formattedNumber;
+        }
 
         public void Go_Home(object sender, EventArgs e)
         {
