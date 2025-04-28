@@ -19,7 +19,7 @@ namespace WinFormsApp1
             this.Show();
             this.Shown += async (s, e) =>
             {
-                await Task.Delay(500);
+                await Task.Delay(400);
                 this.Opacity = 1; // 투명도 복원
             };
         }
