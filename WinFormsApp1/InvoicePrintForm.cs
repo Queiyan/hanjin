@@ -38,8 +38,19 @@ namespace WinFormsApp1
         // 키오스크 식별번호 추후 ini파일로 설정
         private string stackAreaCode = "NHJ063800001";
 
+        /// <summary>
+        /// /////////////////송장 데이터 파싱/////////////////////
+        /// </summary>
+        /// 
+        // 송장 권역구분
+        string dom_rgn;
 
+        string ReceiverName;
 
+        /// <summary>
+        /// ///////////////////////////////////////////////////////
+        /// </summary>
+        /// <param name="cos"></param>
         public InvoicePrintForm(int cos)
         {
             this.Opacity = 0;
@@ -332,6 +343,41 @@ namespace WinFormsApp1
             // 시리얼 포트 설정
             SerialPort serialPort = new SerialPort(comPort, 115200);
 
+            // 송장 데이터 파싱
+
+            
+
+            switch (VoiceDataCtrl.DomRgn)
+            {
+                case "1":
+                    dom_rgn = "수도권";
+                    break;
+                case "2":
+                    dom_rgn = "강원권역";
+                    break;
+                case "3":
+                    dom_rgn = "충청권역";
+                    break;
+                case "4":
+                    dom_rgn = "경남권역";
+                    break;
+                case "5":
+                    dom_rgn = "경북권역";
+                    break;
+                case "6":
+                    dom_rgn = "호남권역";
+                    break;
+                case "7":
+                    dom_rgn = "제주권역";
+                    break;
+                case "9":
+                    dom_rgn = "도서지역";
+                    break;
+
+                default:
+                    break;
+            }
+
             try
             {
                 serialPort.Open();
@@ -359,7 +405,7 @@ namespace WinFormsApp1
 
     ; 제주/도서 구분 15.dom_rgn
     ^FO620,850^GB50,120,5^FS
-    ^FO625,865^A0R,30,30^FD{VoiceDataCtrl.DomRgn}^FS
+    ^FO625,865^A0R,30,30^FD{dom_rgn}^FS
 
     ; 도착지 집배점코드 5.cen_cod, 도착지 집배점명 6.cen_nam
     ^FO620,680^A0R,25,25^FD{VoiceDataCtrl.CenCod} {VoiceDataCtrl.CenNam}^FS
@@ -370,8 +416,8 @@ namespace WinFormsApp1
     ; 수령인 정보
     ^FO570,450^A0R,30,30^FD{DataCtrl.ReceiverPhoneNo}^FS
     ^FO570,50^A0R,30,30^FD{DataCtrl.ReceiverName}^FS
-    ^FO535,50^A0R,25,25rcmd^FD{DataCtrl.ReceiverAddress2}^FS
-    ^FO480,50^A0R,40,40^FD{DataCtrl.ReceiverAddress3}^FS
+    ^FO535,50^A0R,25,25rcmd^FD{DataCtrl.ReceiverAddress2} {DataCtrl.ReceiverAddress3}^FS
+    ^FO480,50^A0R,40,40^FD{VoiceDataCtrl.PrtAdd} {DataCtrl.ReceiverAddress3}^FS
 
     ; 바코드 : 도착지 터미널 바코드 (세로 방향, 크기 조정) tml_cod
     ^FO530,730^BY3
@@ -385,7 +431,7 @@ namespace WinFormsApp1
     ; 송하인 정보
     ^FO420,450^A0R,25,25^FD{DataCtrl.SenderPhoneNo}^FS
     ^FO425,50^A0R,20,20^FD{DataCtrl.SenderName}^FS
-    ^FO400,50^A0R,20,20^FD{DataCtrl.SenderAddress2} {DataCtrl.SenderAddress3}^FS
+    ^FO400,50^A0R,20,20^FD{DataCtrl.SenderAddress2} ****^FS
 
     ; 바코드 (세로 방향, 크기 조정) wbl_num
     ^FO60,600^BY2
