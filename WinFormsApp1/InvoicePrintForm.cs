@@ -396,7 +396,7 @@ namespace WinFormsApp1
     ^FO20,680^A0R,30,30^FD{wblNumDashFormat}^FS
 
     ; 하단 배송메세지 (작은 폰트) 14.
-    ^FO90,20^A0R,25,25^FD{DataCtrl.RequestInputField}^FS
+    ^FO350,20^A0R,25,25^FD{DataCtrl.RequestInputField}^FS
 
     ^XZ";
 
