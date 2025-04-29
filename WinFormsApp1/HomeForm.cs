@@ -12,6 +12,10 @@ namespace WinFormsApp1
 {
     public partial class HomeForm : Form
     {
+        private System.Windows.Forms.Timer idleTimer;
+        private DateTime lastActivityTime;
+        private VideoPlayerForm videoPlayerForm;
+
         public HomeForm()
         {
             this.Opacity = 0; // 초기 투명도 설정
@@ -22,6 +26,60 @@ namespace WinFormsApp1
                 await Task.Delay(500);
                 this.Opacity = 1; // 투명도 복원
             };
+
+            // 사용자 활동 감지를 위한 이벤트 핸들러 등록
+            this.MouseMove += HomeForm_MouseMove;
+            this.MouseClick += HomeForm_MouseClick;
+            this.KeyPress += HomeForm_KeyPress;
+
+            // 30초 타이머 초기화
+            idleTimer = new System.Windows.Forms.Timer();
+            idleTimer.Interval = 30000; // 30초
+            idleTimer.Tick += IdleTimer_Tick;
+            lastActivityTime = DateTime.Now;
+            idleTimer.Start();
+        }
+
+        private void HomeForm_MouseMove(object sender, MouseEventArgs e)
+        {
+            ResetIdleTimer();
+        }
+
+        private void HomeForm_MouseClick(object sender, MouseEventArgs e)
+        {
+            ResetIdleTimer();
+        }
+
+        private void HomeForm_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            ResetIdleTimer();
+        }
+
+        private void ResetIdleTimer()
+        {
+            lastActivityTime = DateTime.Now;
+            if (videoPlayerForm != null && !videoPlayerForm.IsDisposed)
+            {
+                videoPlayerForm.Close();
+                videoPlayerForm = null;
+            }
+        }
+
+        private void IdleTimer_Tick(object sender, EventArgs e)
+        {
+            if ((DateTime.Now - lastActivityTime).TotalSeconds >= 30)
+            {
+                if (videoPlayerForm == null || videoPlayerForm.IsDisposed)
+                {
+                    videoPlayerForm = new VideoPlayerForm();
+                    videoPlayerForm.FormClosed += (s, args) => 
+                    {
+                        videoPlayerForm = null;
+                        lastActivityTime = DateTime.Now;
+                    };
+                    videoPlayerForm.Show();
+                }
+            }
         }
 
         public void Go_Kiosk(object sender, EventArgs e)

@@ -427,7 +427,7 @@ namespace WinFormsApp1
     ^FO650,710^A0R,70,90^FD{VoiceDataCtrl.GrpRnk}^FS
 
     ; 제주/도서 구분 15.dom_rgn
-    ^FO620,850^GB50,120,5^FS
+    ^FO620,850^GB50,130,5^FS
     ^FO625,865^A0R,30,30^FD{dom_rgn}^FS
 
     ; 도착지 집배점코드 5.cen_cod, 도착지 집배점명 6.cen_nam

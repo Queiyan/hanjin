@@ -35,7 +35,7 @@
       <Guid>6bf52a50-394a-11d3-b153-00c04f79faa6</Guid>
       <Lcid>0</Lcid>
       <Isolated>false</Isolated>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
     </COMReference>
     <COMReference Include="AxWMPLib">
       <WrapperTool>aximp</WrapperTool>
