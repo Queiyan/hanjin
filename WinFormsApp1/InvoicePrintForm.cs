@@ -424,7 +424,7 @@ namespace WinFormsApp1
     ^FO620,500^A0R,55,55^FD{VoiceDataCtrl.EsNam}^FS
 
     ; 소분류 코드 - 배송사원 grp_rnk
-    ^FO650,710^A0R,70,90^FD{VoiceDataCtrl.GrpRnk}^FS
+    ^FO655,705^A0R,70,90^FD{VoiceDataCtrl.GrpRnk}^FS
 
     ; 제주/도서 구분 15.dom_rgn
     ^FO620,850^GB50,130,5^FS

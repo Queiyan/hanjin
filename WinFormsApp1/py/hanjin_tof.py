@@ -1,5 +1,4 @@
 import serial
-import serial.tools.list_ports
 import time
 import configparser
 import os
@@ -11,50 +10,8 @@ import copy
 from scipy import ndimage
 from scipy.ndimage import median_filter
 
-# 포트 찾기 함수
-def find_tof_sensor_port():
-    ports = serial.tools.list_ports.comports()
-    sorted_ports = sorted(ports, key=lambda port: int(port.device.replace('COM', '')) if port.device.startswith('COM') else float('inf'))
-
-    tof_ports = []
-
-    for port in sorted_ports:
-        try:
-            with serial.Serial(port.device, 115200, timeout=0.5) as ser:
-                ser.write(bytearray(b'AT+ISP=0\r'))  # TOF 센서에 데이터 요청
-                time.sleep(0.2)  # 응답 대기
-                response = ser.readline().strip()  # 응답 읽기
-                
-                if response:  # 응답이 있는 경우
-                    tof_ports.append(port.device)
-        except (serial.SerialException, ValueError):
-            continue  # 포트가 열리지 않거나 오류 발생 시 무시
-
-    return tof_ports[0] if tof_ports else None  # 가장 작은 COM 포트 반환
-
 # ini 파일
 CONFIG_FILE = "config.ini"
-
-# CONFIG 파일 생성
-def update_config(tof_port):
-    """config.ini 파일을 업데이트하여 TOF 센서의 COM 포트를 저장, 파일이 없으면 새로 생성"""
-    config = configparser.ConfigParser()
-    
-    # 파일이 없으면 새로 생성
-    # if not os.path.exists(CONFIG_FILE):
-    #     print("config.ini 파일이 존재하지 않습니다. 새로 생성합니다.")
-    
-    # 기존 설정 파일 읽기 (파일이 있으면 유지)
-    config.read(CONFIG_FILE)
-
-    if "Ports" not in config:
-        config["Ports"] = {}
-
-    config["Ports"]["tof_port"] = tof_port
-
-    with open(CONFIG_FILE, "w") as configfile:
-        config.write(configfile)
-    # print(f"TOF 센서 포트 ({tof_port})가 config.ini에 저장되었습니다.")
 
 # 설정 파일 읽기 함수
 def load_config():
@@ -85,20 +42,8 @@ def initialize_tof_sensor():
             return ser_tof  # 성공하면 시리얼 객체 반환
 
         except Exception as e:
-            # print("*** 포트가 바뀌었습니다. 포트를 새로 탐색합니다. ***")
-            
-            # TOF 센서 포트 찾기
-            find_port = find_tof_sensor_port()
-
-            if find_port:
-                # print(f"연결된 TOF 센서 포트: {find_port}")
-                update_config(find_port)  # config.ini 업데이트
-                
-                # 잠시 대기 후 재시도
-                time.sleep(0.5)
-            else:
-                # print("TOF 센서를 찾을 수 없습니다. 다시 시도합니다...")
-                exit()
+            # print("!!! 포트가 바뀌었습니다 !!!")
+            exit()
 
 # tof 센서 설정
 ser_tof = initialize_tof_sensor()
@@ -117,15 +62,13 @@ time.sleep(0.5)
 
 # 높이 계산
 def calculate_height(sensor_value):
-    if sensor_value < 680 or sensor_value > 960:
-        return "Error: 상자를 측정할 수 없습니다."
     for i in range(len(reference_table) - 1):
         x1, y1 = reference_table[i]["tof"], reference_table[i]["height_cm"]
         x2, y2 = reference_table[i + 1]["tof"], reference_table[i + 1]["height_cm"]
         if x2 <= sensor_value <= x1:
             height = y1 + (y2 - y1) * (x1 - sensor_value) / (x1 - x2)
             return round(height, 1)
-    return "Error: 상자 높이를 계산할 수 없습니다."
+    return 0
 
 # 픽셀당 cm 보간 함수
 def get_pixel_to_cm_ratio(sensor_value):
@@ -135,11 +78,11 @@ def get_pixel_to_cm_ratio(sensor_value):
         if x2 <= sensor_value <= x1:
             ratio = r1 + (r2 - r1) * (x1 - sensor_value) / (x1 - x2)
             return ratio * 0.1  # cm로 변환
-    return None
+    return 0
 
     
 # 필터링 함수
-def filter_tof_data(data, invalid_value=2295, floor_value=970):
+def filter_tof_data(data, invalid_value=2295, floor_value=1460):
     """TOF 데이터를 필터링하여 유효한 값만 반환."""
     return np.where(
         # 2295 (측정 불가) 값, 바닥 값보다 낮은거 제외
@@ -193,6 +136,7 @@ def calculate_box_angle_and_size(data):
     """
     object_indices = np.argwhere(data > 0)  # 유효한 픽셀 위치 찾기
     if object_indices.size == 0:
+        # print("박스를 찾지 못했습니다")
         return 0, 0, 0  # 박스가 없는 경우
 
     # Convex Hull을 이용하여 박스의 경계를 찾음
@@ -265,7 +209,7 @@ mean = median_filter(mean, size=3)
 # 비율 기반으로 제거 영역 설정
 # top_margin = int(100 * 0.1) # 상단 10%
 bottom_margin = int(100 * 0.21)  # 하단 27%
-left_margin = int(100 * 0.13)   # 좌 15% 
+#left_margin = int(100 * 0.13)   # 좌 15% 
 #right_margin = int(100 * 0.1) # 우 10%
 
 # 상단 영역 제거
@@ -273,7 +217,7 @@ left_margin = int(100 * 0.13)   # 좌 15%
 # 하단 영역 제거
 filtered_mean[-bottom_margin:, :] = 0
 # 좌측 영역 제거
-filtered_mean[:, :left_margin] = 0
+#filtered_mean[:, :left_margin] = 0
 # 우측 영역 제거
 #filtered_mean[:, -right_margin:] = 0
 
@@ -296,14 +240,16 @@ average_tof = np.mean(cleaned_data[cleaned_data > 0])
 
 # TOF 기준점 + 높이 + mm/픽셀 비율을 하나로 통합
 reference_table = [
-    {"tof": 955, "height_cm": 5, "pixel_ratio": 200 / 16},
-    {"tof": 910, "height_cm": 10, "pixel_ratio": 200 / 21},
-    {"tof": 870, "height_cm": 15, "pixel_ratio": 200 / 22},
-    {"tof": 835, "height_cm": 20, "pixel_ratio": 200 / 25},
-    {"tof": 800, "height_cm": 25, "pixel_ratio": 200 / 26},
-    {"tof": 750, "height_cm": 30, "pixel_ratio": 200 / 28},
-    {"tof": 710, "height_cm": 35, "pixel_ratio": 200 / 30},
-    {"tof": 690, "height_cm": 40, "pixel_ratio": 200 / 33}
+    {"tof": 1445, "height_cm": 2, "pixel_ratio": 200 / 17},
+    {"tof": 1424, "height_cm": 6, "pixel_ratio": 200 / 18},
+    {"tof": 1395, "height_cm": 10, "pixel_ratio": 200 / 19},
+    {"tof": 1364, "height_cm": 14, "pixel_ratio": 200 / 20},
+    {"tof": 1348, "height_cm": 18, "pixel_ratio": 200 / 23},
+    {"tof": 1317, "height_cm": 23, "pixel_ratio": 200 / 24},
+    {"tof": 1290, "height_cm": 27.5, "pixel_ratio": 200 / 26},
+    {"tof": 1250, "height_cm": 32, "pixel_ratio": 200 / 27},
+    {"tof": 1225, "height_cm": 35, "pixel_ratio": 200 / 29},
+    {"tof": 1170, "height_cm": 41, "pixel_ratio": 200 / 32}
 ]
 
 
@@ -311,6 +257,7 @@ pixel_to_cm_ratio = get_pixel_to_cm_ratio(average_tof)
 
 # 박스의 기울기 및 크기 계산
 box_angle, min_area_width, min_area_length = calculate_box_angle_and_size(cleaned_data)
+# print(box_angle, min_area_width, min_area_length, pixel_to_cm_ratio)
 
 corrected_width, corrected_length = scale_corrected_dimensions(min_area_width, min_area_length, pixel_to_cm_ratio)
 
@@ -318,17 +265,7 @@ corrected_width, corrected_length = scale_corrected_dimensions(min_area_width, m
 width = round(corrected_width, 1)
 length = round(corrected_length, 1)
 height = round(calculate_height(average_tof), 1)
-angle = round(box_angle, 1)
-
-
-# 부피 계산
-# volume = round(height * width * length)
-# print(f"가로 : {width}cm, 세로 : {length}cm, 높이 : {height}cm, 각도 : {angle}")
-
-# import matplotlib.pyplot as plt
-# plt.imshow(cleaned_data, cmap='hot', interpolation='nearest')
-# plt.colorbar()
-# plt.show()    
+angle = round(box_angle, 1)  
 
 import json
  
