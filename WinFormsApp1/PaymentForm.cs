@@ -265,7 +265,7 @@ namespace WinFormsApp1
             //  한진 송장 출력 API 호출
             using (HttpClient client = new HttpClient())
             {
-                string apiKey = "rVz901GWhd1GNnbU04Hov4dUHsXK1WwB1SNoWRKX";
+                string apiKey = "HQikOmANd32ASwbbi5AtZ56aXMFAqCdE4x7fkSeR";
                 //string requestUrl = $"https://ebbapd.hjt.co.kr/v1/wbl/SMARTCU/print-wbl";
                 string requestUrl = $"https://ebbapp.hjt.co.kr/v1/wbl/SMARTCU/print-wbl";
 
