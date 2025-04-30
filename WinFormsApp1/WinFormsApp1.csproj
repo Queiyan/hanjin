@@ -19,24 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <COMReference Include="MediaPlayer">
-      <WrapperTool>tlbimp</WrapperTool>
-      <VersionMinor>0</VersionMinor>
-      <VersionMajor>1</VersionMajor>
-      <Guid>22d6f304-b0f6-11d0-94ab-0080c74c7e95</Guid>
-      <Lcid>0</Lcid>
-      <Isolated>false</Isolated>
-      <EmbedInteropTypes>true</EmbedInteropTypes>
-    </COMReference>
-    <COMReference Include="WMPLib">
-      <WrapperTool>tlbimp</WrapperTool>
-      <VersionMinor>0</VersionMinor>
-      <VersionMajor>1</VersionMajor>
-      <Guid>6bf52a50-394a-11d3-b153-00c04f79faa6</Guid>
-      <Lcid>0</Lcid>
-      <Isolated>false</Isolated>
-      <EmbedInteropTypes>true</EmbedInteropTypes>
-    </COMReference>
     <COMReference Include="AxWMPLib">
       <WrapperTool>aximp</WrapperTool>
       <VersionMinor>0</VersionMinor>
@@ -85,6 +67,7 @@
     <PackageReference Include="Python.Runtime" Version="2.7.9" />
     <PackageReference Include="System.IO.Ports" Version="9.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.0" />
+    <PackageReference Include="Vlc.DotNet.Forms" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -134,7 +117,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="libvlc\" />
     <Folder Include="Resources\packaging\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="AxInterop.WMPLib">
+      <HintPath>obj\Debug\net8.0-windows\AxInterop.WMPLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.WMPLib">
+      <HintPath>obj\Debug\net8.0-windows\Interop.WMPLib.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

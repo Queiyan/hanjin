@@ -428,7 +428,7 @@ namespace WinFormsApp1
 
     ; 제주/도서 구분 15.dom_rgn
     ^FO620,850^GB50,130,5^FS
-    ^FO625,865^A0R,30,30^FD{dom_rgn}^FS
+    ^FO625,860^A0R,30,30^FD{dom_rgn}^FS
 
     ; 도착지 집배점코드 5.cen_cod, 도착지 집배점명 6.cen_nam
     ^FO620,680^A0R,25,25^FD{VoiceDataCtrl.CenCod} {VoiceDataCtrl.CenNam}^FS
@@ -440,7 +440,7 @@ namespace WinFormsApp1
     ^FO570,450^A0R,30,30^FD{formattedReceiverPhone}^FS
     ^FO570,50^A0R,30,30^FD{ReceiverName}^FS
     ^FO535,50^A0R,25,25rcmd^FD{DataCtrl.ReceiverAddress2} {DataCtrl.ReceiverAddress3}^FS
-    ^FO480,50^A0R,40,40^FD{VoiceDataCtrl.PrtAdd} {DataCtrl.ReceiverAddress3}^FS
+    ^FO480,50^A0R,40,40^FD{VoiceDataCtrl.PrtAdd}^FS
 
     ; 바코드 : 도착지 터미널 바코드 (세로 방향, 크기 조정) tml_cod
     ^FO530,730^BY3

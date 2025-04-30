@@ -28,7 +28,7 @@ namespace WinFormsApp1
             };
 
             // 사용자 활동 감지를 위한 이벤트 핸들러 등록
-            this.MouseMove += HomeForm_MouseMove;
+            //this.MouseMove += HomeForm_MouseMove; // 제거
             this.MouseClick += HomeForm_MouseClick;
             this.KeyPress += HomeForm_KeyPress;
 
@@ -42,7 +42,7 @@ namespace WinFormsApp1
 
         private void HomeForm_MouseMove(object sender, MouseEventArgs e)
         {
-            ResetIdleTimer();
+            // ResetIdleTimer(); // 제거
         }
 
         private void HomeForm_MouseClick(object sender, MouseEventArgs e)
@@ -67,43 +67,50 @@ namespace WinFormsApp1
 
         private void IdleTimer_Tick(object sender, EventArgs e)
         {
-            if ((DateTime.Now - lastActivityTime).TotalSeconds >= 30)
+            // 현재 활성화된 폼이 HomeForm인 경우에만 비디오 재생
+            if (Application.OpenForms.OfType<Form>().LastOrDefault() is HomeForm)
             {
-                if (videoPlayerForm == null || videoPlayerForm.IsDisposed)
+                if ((DateTime.Now - lastActivityTime).TotalSeconds >= 30)
                 {
-                    videoPlayerForm = new VideoPlayerForm();
-                    videoPlayerForm.FormClosed += (s, args) => 
+                    if (videoPlayerForm == null || videoPlayerForm.IsDisposed)
                     {
-                        videoPlayerForm = null;
-                        lastActivityTime = DateTime.Now;
-                    };
-                    videoPlayerForm.Show();
+                        videoPlayerForm = new VideoPlayerForm();
+                        videoPlayerForm.FormClosed += (s, args) => 
+                        {
+                            videoPlayerForm = null;
+                            lastActivityTime = DateTime.Now;
+                        };
+                        videoPlayerForm.Show();
+                    }
                 }
+            }
+            else
+            {
+                // 다른 폼이 활성화된 경우 타이머 중지
+                idleTimer.Stop();
             }
         }
 
         public void Go_Kiosk(object sender, EventArgs e)
         {
+            idleTimer.Stop(); // 타이머 중지
             TermsForm kioskForm = new TermsForm();
             Task.Delay(600).ContinueWith(t => this.Close(), TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         public void Go_Easy(object sender, EventArgs e)
         {
+            idleTimer.Stop(); // 타이머 중지
             ReservationMenu easyMenu = new ReservationMenu();
             Task.Delay(600).ContinueWith(t => this.Close(), TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         public void Go_Mobile(object sender, EventArgs e)
         {
-            // dev 테스트용
-            //MobileMenu mobileMenu = new MobileMenu();
-            //Task.Delay(600).ContinueWith(t => this.Close(), TaskScheduler.FromCurrentSynchronizationContext());
-
+            idleTimer.Stop(); // 타이머 중지
             CautionForm cautionForm = new CautionForm();
             Task.Delay(500).ContinueWith(t => this.Close(), TaskScheduler.FromCurrentSynchronizationContext());
             Cursor.Position = new System.Drawing.Point(0, 200);
-
         }
 
         private void HomeForm_Load(object sender, EventArgs e)
