@@ -266,7 +266,8 @@ namespace WinFormsApp1
             using (HttpClient client = new HttpClient())
             {
                 string apiKey = "rVz901GWhd1GNnbU04Hov4dUHsXK1WwB1SNoWRKX";
-                string requestUrl = $"https://ebbapd.hjt.co.kr/v1/wbl/SMARTCU/print-wbl";
+                //string requestUrl = $"https://ebbapd.hjt.co.kr/v1/wbl/SMARTCU/print-wbl";
+                string requestUrl = $"https://ebbapp.hjt.co.kr/v1/wbl/SMARTCU/print-wbl";
 
                 client.DefaultRequestHeaders.Add("x-api-key", apiKey);
 

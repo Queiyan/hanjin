@@ -14,9 +14,9 @@ public class ApiHelper
     {
         string timestamp = CreateTimestamp();
         string encodedReservNum = Uri.EscapeDataString(reservNum);
-        string apiUrl = $"https://api-dev.hanjin.com/parcel-delivery/v1/rsv/retrieve-rsvno/{encodedReservNum}";
+        //string apiUrl = $"https://api-dev.hanjin.com/parcel-delivery/v1/rsv/retrieve-rsvno/{encodedReservNum}";
         ///////////////////////////////////
-        //string apiUrl = $"https://api-stg.hanjin.com/parcel-delivery/v1/rsv/retrieve-rsvno/{encodedReservNum}";
+        string apiUrl = $"https://api-stg.hanjin.com/parcel-delivery/v1/rsv/retrieve-rsvno/{encodedReservNum}";
         //////////////////////////////////////
         // ✅ Postman과 동일한 message 생성
         string method = "GET";
