@@ -79,6 +79,8 @@ namespace WinFormsApp1
                         {
                             videoPlayerForm = null;
                             lastActivityTime = DateTime.Now;
+                            this.Activate(); // HomeForm 활성화
+                            this.BringToFront(); // 필요시 추가
                         };
                         videoPlayerForm.Show();
                     }
