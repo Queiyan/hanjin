@@ -117,10 +117,16 @@ namespace WinFormsApp1
 
         ////////////////////////////////////////////////////////////////////60초 뒤 홈 화면으로 이동하는 타이머 초기화//////////////////////////////////////////////////////////
 
-        private void DetailedAddressForm_FormClosed(object sender, EventArgs e)
+        private void DetailedAddressForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             if (parentForm != null && !parentForm.IsDisposed)
             {
+                // 부모 폼의 타이머 정리
+                if (parentForm is PostcodeSearchForm postcodeForm)
+                {
+                    postcodeForm.ResetInactivityTimer();
+                }
+                
                 this.Close();
                 this.DialogResult = DialogResult.Cancel;
                 parentForm.Close();

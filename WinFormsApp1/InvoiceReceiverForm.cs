@@ -688,8 +688,20 @@ namespace WinFormsApp1
 
                 var postcodeForm = new PostcodeSearchForm();
 
+                // 타이머 중지
+                if (inactivityTimer != null)
+                {
+                    inactivityTimer.Stop();
+                }
+
                 postcodeForm.FormClosed += (s, args) =>
                 {
+                    // 타이머 다시 시작
+                    if (inactivityTimer != null)
+                    {
+                        inactivityTimer.Start();
+                    }
+
                     if (postcodeForm.DialogResult == DialogResult.OK)
                     {
                         // 우편번호, 주소, 상세주소 가져오기
