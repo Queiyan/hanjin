@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 public class ApiHelper
 {
     private static readonly string clientId = "SMARTCU";
-    private static readonly string secretKey = "G5SMSOPqKKcqBCumRHydAIQd13zN7GavkWqA8AcS9ATtB2ZgGGGoyhEmoRzQSzcp";
-    private static readonly string apiKey = "EXAoyZ4VhU3FcFrIWVZWZjlHdpBfnlwkHPOkfWEzjMZ1iYwQ";
+    private static readonly string secretKey = "kXw1OAZs9EgwOxMxLLuGxDmLriHp1YLUynWGi7JAu6U8mAIvRrI6FjVwcXolYdaZ";
+    private static readonly string apiKey = "eTIv1Y5vTMqZDLsWXSEbuGseiZGw2GAxqxrKtSZSDAlvq8MG";
 
     public static async Task<string> SendRequestAsync(string reservNum)
     {
@@ -16,7 +16,7 @@ public class ApiHelper
         string encodedReservNum = Uri.EscapeDataString(reservNum);
         //string apiUrl = $"https://api-dev.hanjin.com/parcel-delivery/v1/rsv/retrieve-rsvno/{encodedReservNum}";
         ///////////////////////////////////
-        string apiUrl = $"https://api-stg.hanjin.com/parcel-delivery/v1/rsv/retrieve-rsvno/{encodedReservNum}";
+        string apiUrl = $"https://api.hanjin.com/parcel-delivery/v1/rsv/retrieve-rsvno/{encodedReservNum}";
         //////////////////////////////////////
         // ✅ Postman과 동일한 message 생성
         string method = "GET";

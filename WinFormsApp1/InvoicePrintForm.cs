@@ -33,7 +33,7 @@ namespace WinFormsApp1
 
         
 
-        string wblNumDashFormat = VoiceDataCtrl.WblNum.Insert(4, "-").Insert(9, "-");
+        
 
         // 키오스크 식별번호 추후 ini파일로 설정
         private string stackAreaCode = "NHJ063800001";
@@ -53,6 +53,7 @@ namespace WinFormsApp1
 
         // 송장 송하인 전화번호 마스킹
         private string formattedSenderPhone;
+
 
         // 송장 수령인 전화번호 마스킹
         private string formattedReceiverPhone;
@@ -283,7 +284,9 @@ namespace WinFormsApp1
                             if (!string.IsNullOrEmpty(responseData.WblNo))
                             {
                                 sequence = responseData.RsvNo;
+
                                 invoiceTrackNo = responseData.WblNo;
+                                VoiceDataCtrl.WblNum = responseData.WblNo;
                             }
                         }
 
@@ -386,6 +389,8 @@ namespace WinFormsApp1
 
         private async Task ShowPrinterWindow()
         {
+            string wblNumDashFormat = VoiceDataCtrl.WblNum.Insert(4, "-").Insert(9, "-");
+
             // device.json 경로 설정
             string deviceJsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appassets", "device.json");
 

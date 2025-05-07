@@ -1,4 +1,5 @@
 import serial
+import serial.tools.list_ports
 import time
 import configparser
 import os
@@ -38,11 +39,11 @@ def initialize_tof_sensor():
             # 필수 설정값 가져오기
             tof_port = get_required_setting(config, "Ports", "tof_port")
             ser_tof = serial.Serial(tof_port, 115200, timeout=0.1)
-            # print(f"TOF 센서 연결 성공: {tof_port}")
+            print(f"TOF 센서 연결 성공: {tof_port}")
             return ser_tof  # 성공하면 시리얼 객체 반환
 
         except Exception as e:
-            # print("!!! 포트가 바뀌었습니다 !!!")
+            print("!!! 포트가 바뀌었습니다 !!!")
             exit()
 
 # tof 센서 설정
@@ -82,7 +83,7 @@ def get_pixel_to_cm_ratio(sensor_value):
 
     
 # 필터링 함수
-def filter_tof_data(data, invalid_value=2295, floor_value=1460):
+def filter_tof_data(data, invalid_value=2295, floor_value=1447):
     """TOF 데이터를 필터링하여 유효한 값만 반환."""
     return np.where(
         # 2295 (측정 불가) 값, 바닥 값보다 낮은거 제외
@@ -136,7 +137,7 @@ def calculate_box_angle_and_size(data):
     """
     object_indices = np.argwhere(data > 0)  # 유효한 픽셀 위치 찾기
     if object_indices.size == 0:
-        # print("박스를 찾지 못했습니다")
+        print("박스를 찾지 못했습니다")
         return 0, 0, 0  # 박스가 없는 경우
 
     # Convex Hull을 이용하여 박스의 경계를 찾음
@@ -193,7 +194,7 @@ if ser_tof:
     stack = np.stack(output)
     
     if not output:
-        # print("Error: No data available in the queue.")
+        print("Error: No data available in the queue.")
         exit()
 
 
@@ -231,33 +232,33 @@ cleaned_data = keep_largest_centered_object(centered_filtered)
 object_width, object_length = calculate_object_size(cleaned_data)
 
 # 결과 출력
-# print(f"가로 픽셀: {object_width}")
-# print(f"세로 픽셀: {object_length}")
+print(f"가로 픽셀: {object_width}")
+print(f"세로 픽셀: {object_length}")
 
 # 현재 TOF 센서 평균 값
 average_tof = np.mean(cleaned_data[cleaned_data > 0])
-# print(f"tof 센서 평균 값 : {average_tof}")
+print(f"tof 센서 평균 값 : {average_tof}")
 
 # TOF 기준점 + 높이 + mm/픽셀 비율을 하나로 통합
 reference_table = [
-    {"tof": 1445, "height_cm": 2, "pixel_ratio": 200 / 17},
-    {"tof": 1424, "height_cm": 6, "pixel_ratio": 200 / 18},
-    {"tof": 1395, "height_cm": 10, "pixel_ratio": 200 / 19},
-    {"tof": 1364, "height_cm": 14, "pixel_ratio": 200 / 20},
-    {"tof": 1348, "height_cm": 18, "pixel_ratio": 200 / 23},
-    {"tof": 1317, "height_cm": 23, "pixel_ratio": 200 / 24},
-    {"tof": 1290, "height_cm": 27.5, "pixel_ratio": 200 / 26},
-    {"tof": 1250, "height_cm": 32, "pixel_ratio": 200 / 27},
-    {"tof": 1225, "height_cm": 35, "pixel_ratio": 200 / 29},
-    {"tof": 1170, "height_cm": 41, "pixel_ratio": 200 / 32}
+    {"tof": 1429, "height_cm": 2, "pixel_ratio": 200 / 17},
+    {"tof": 1392, "height_cm": 7, "pixel_ratio": 200 / 18},
+    {"tof": 1373, "height_cm": 10, "pixel_ratio": 200 / 19},
+    {"tof": 1355, "height_cm": 13, "pixel_ratio": 200 / 20},
+    {"tof": 1336, "height_cm": 17, "pixel_ratio": 200 / 22},
+    {"tof": 1310, "height_cm": 21, "pixel_ratio": 200 / 23},
+    {"tof": 1290, "height_cm": 25, "pixel_ratio": 200 / 26},
+    {"tof": 1270, "height_cm": 29.5, "pixel_ratio": 200 / 28},
+    {"tof": 1210, "height_cm": 35, "pixel_ratio": 200 / 31},
+    {"tof": 1155, "height_cm": 42, "pixel_ratio": 200 / 34}
 ]
 
 
 pixel_to_cm_ratio = get_pixel_to_cm_ratio(average_tof)
+print(pixel_to_cm_ratio)
 
 # 박스의 기울기 및 크기 계산
 box_angle, min_area_width, min_area_length = calculate_box_angle_and_size(cleaned_data)
-# print(box_angle, min_area_width, min_area_length, pixel_to_cm_ratio)
 
 corrected_width, corrected_length = scale_corrected_dimensions(min_area_width, min_area_length, pixel_to_cm_ratio)
 
@@ -265,16 +266,18 @@ corrected_width, corrected_length = scale_corrected_dimensions(min_area_width, m
 width = round(corrected_width, 1)
 length = round(corrected_length, 1)
 height = round(calculate_height(average_tof), 1)
-angle = round(box_angle, 1)  
+angle = round(box_angle, 1)
 
-import json
- 
-result = {
-    "width_cm": width,
-    "length_cm": length,
-    "height_cm": height
-}
-print(json.dumps(result))  # JSON으로 출력
+
+# 부피 계산
+# volume = round(height * width * length)
+print(f"가로 : {width}cm, 세로 : {length}cm, 높이 : {height}cm, 각도 : {angle}")
+print(f"합계 : {round(width + length + height)}")
+
+import matplotlib.pyplot as plt
+plt.imshow(cleaned_data, cmap='hot', interpolation='nearest')
+plt.colorbar()
+plt.show()
 
 if ser_tof:
     
@@ -284,5 +287,5 @@ if ser_tof:
     ser_tof.write(close_disp)
     
     ser_tof.close()
-    #print("*** closed ***")
+    print("*** closed ***")
     

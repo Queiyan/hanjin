@@ -103,7 +103,7 @@ namespace WinFormsApp1
         }
 
         // 60초 뒤 홈 화면으로 이동하는 타이머 재설정
-        private void ResetInactivityTimer()
+        public void ResetInactivityTimer()
         {
             if (inactivityTimer != null)
             {

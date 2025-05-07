@@ -62,7 +62,7 @@ namespace WinFormsApp1
             CancelBtn.Size = new Size(47, 44);
             CancelBtn.TabIndex = 3;
             CancelBtn.TabStop = false;
-            CancelBtn.Click += DetailedAddressForm_FormClosed;
+            CancelBtn.Click += btnCancel_Click;
             // 
             // pictureBox2
             // 
